@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <title>D&amp;D 5e Statblock Generator</title>
+    <link rel="shortcut icon" type="image/x-icon" href="dndimages/favicon.ico" />
+    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="css/statblock-style.css">
+    <link rel="stylesheet" type="text/css" href="css/statblock-page-style.css">
+    <link rel="stylesheet" type="text/css" href="css/dnd-style.css">
+    <link rel="stylesheet" type="text/css" href="css/libre-baskerville.css">
+    <link rel="stylesheet" type="text/css" href="css/noto-sans.css">
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/FileSaver.min.js"></script>
+    <script src="js/dom-to-image.min.js"></script>
+    <script src="js/statblock-script.js"></script>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-145234284-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+
+        gtag('config', 'UA-145234284-1');
+    </script>
+
+</head>
+
+<body id="stat-block-body" style="min-width: 1000px;">
+    <div class="container" style="text-align: center;">
+        <div id="kofiheader" style="text-align: center;">
+            <br>
+            <script src='https://ko-fi.com/widgets/widget_2.js'></script>
+            <script>
+                try {
+                    kofiwidget2.init('Support Me on Ko-fi', '#46b798', 'Q5Q8MRF6');
+                    kofiwidget2.draw();
+                }
+                catch {
+                    console.error("Kofi widget display error")
+                    document.writeln('<a id="kofi-button" href="https://ko-fi.com/Q5Q8MRF6" target="_blank"><b>Support me on Ko-Fi!</b></a>');
+                }
+            </script>
+            <br>
+        </div>
+        <div class="content">
+            <div style="text-align: center;"><a href="dnd-reference.html">PC Options Reference</a> - <a
+                    href="dnd-char-gen.html">Character Generator</a> - <a href="dnd-magic-items.html">Magic Item
+                    Generator</a> - <b>Statblock Generator</b></div>
+            <br>
+            <h1>D&amp;D 5e Statblock Generator</h1>
+            <p>Based on <a href="http://valloric.github.io/statblock5e/">Statblock5e</a> and <a
+                    href="https://open5e.com/">Open5e</a></p>
+            <br>
+            <button onclick="TrySaveFile()">Save Statblock</button>
+            <button onclick="LoadFilePrompt()">Load Statblock</button>
+            <button onclick="TryPrint()">Printable Block</button>
+            <button onclick="TryImage()">View Image</button>
+            <button onclick="TryMarkdown()">View Markdown</button>
+            <input id="file-upload" type="file" onChange="TryLoadFile();" hidden />
+            <br><br>
+            <div id="monster-select-form">Monster Presets: <select id="monster-select">
+                    <option value="">-Select-</option>
+                    <option value="default">Restore Default</option>
+                </select> <button type="button" id="monster-select-button" onclick="InputFunctions.GetPreset()">Use
+                    Preset</button></div>
+            <br>
+
+            <!-- The Actual Stat Block -->
+            <div id="stat-block-wrapper">
+                <div id="stat-block" class="stat-block">
+                    <hr class="orange-border" />
+                    <div class="section-left">
+                        <div class="creature-heading">
+                            <h1 id="monster-name">Varlık</h1>
+                            <h2 id="monster-type">Boyut, tür, yönelim</h2>
+                        </div> <!-- creature heading -->
+                        <svg height="5" width="100%" class="tapered-rule">
+                            <polyline points="0,0 400,2.5 0,5"></polyline>
+                        </svg>
+                        <div class="top-stats">
+                            <div class="property-line first">
+                                <h4>Zırh Sınıfı</h4>
+                                <p id="armor-class"></p>
+                            </div> <!-- property line -->
+                            <div class="property-line">
+                                <h4>Sağlık Puanları</h4>
+                                <p id="hit-points"></p>
+                            </div> <!-- property line -->
+                            <div class="property-line last">
+                                <h4>Hız</h4>
+                                <p id="speed"></p>
+                            </div> <!-- property line -->
+                            <svg height="5" width="100%" class="tapered-rule">
+                                <polyline points="0,0 400,2.5 0,5"></polyline>
+                            </svg>
+                            <div class="scores">
+                                <div class="scores-strength">
+                                    <h4>KUV</h4>
+                                    <p id="strpts"></p>
+                                </div> <!-- scores strength -->
+                                <div class="scores-dexterity">
+                                    <h4>ÇEV</h4>
+                                    <p id="dexpts"></p>
+                                </div> <!-- scores dexterity -->
+                                <div class="scores-constitution">
+                                    <h4>DAY</h4>
+                                    <p id="conpts"></p>
+                                </div> <!-- scores constitution -->
+                                <div class="scores-intelligence">
+                                    <h4>ZEK</h4>
+                                    <p id="intpts"></p>
+                                </div> <!-- scores intelligence -->
+                                <div class="scores-wisdom">
+                                    <h4>BİL</h4>
+                                    <p id="wispts"></p>
+                                </div> <!-- scores wisdom -->
+                                <div class="scores-charisma">
+                                    <h4>KAR</h4>
+                                    <p id="chapts"></p>
+                                </div> <!-- scores charisma -->
+                            </div> <!-- scores -->
+                            <svg height="5" width="100%" class="tapered-rule">
+                                <polyline points="0,0 400,2.5 0,5"></polyline>
+                            </svg>
+                            <div id="properties-list"></div>
+                            <div id="challenge-rating-line" class="property-line last">
+                                <h4>Tehdit Derecesi</h4>
+                                <p id="challenge-rating"></p>
+                            </div> <!-- property line -->
+                        </div> <!-- top stats -->
+                        <svg height="5" width="100%" class="tapered-rule">
+                            <polyline points="0,0 400,2.5 0,5"></polyline>
+                        </svg>
+                        <div class="actions">
+                            <div id="traits-list-left"></div>
+                        </div> <!-- actions -->
+                    </div> <!-- section left -->
+                    <div class="section-right">
+                        <div class="actions">
+                            <div id="traits-list-right"></div>
+                        </div> <!-- actions -->
+                    </div> <!-- section right -->
+                    <hr class="orange-border bottom" />
+                </div>
+            </div> <!-- stat block -->
+
+            <div class="options">
+                <form>
+                    <label for="1col-input"><input id="1col-input" type="radio" name="columns-input" value="1col"
+                            checked> Tek Sütun</label>
+                    <label for="2col-input" style="margin-left: .5rem;"><input id="2col-input" type="radio"
+                            name="columns-input" value="2col"> Çift Sütun</label>
+                </form>
+                <button id="left-separator-button" type="button" onclick="UpdateBlockFromVariables(1)">&lt;&lt;</button>
+                <button type="button" onclick="UpdateBlockFromVariables(0)">Varlık Kartı Güncelle</button>
+                <button id="right-separator-button" type="button" onclick="UpdateBlockFromVariables(-1)">>></button>
+                <hr>
+                <table id="type-form">
+                    <tr>
+                        <td>
+                            <label for="name-input">Ad: <br><input id="name-input" type="text"
+                                    value="Monster"></label>
+                        </td>
+                        <td>
+                            <label for="size-input">Boyut: <br>
+                                <select id="size-input">
+                                    <option value="tiny">Ufacık</option>
+                                    <option value="small">Kısa</option>
+                                    <option value="medium" selected="selected">Orta</option>
+                                    <option value="large">Büyük</option>
+                                    <option value="huge">Kocaman</option>
+                                    <option value="gargantuan">Devasa</option>
+                                </select>
+                            </label>
+                        </td>
+                        <td>
+                            <label for="type-input">Tür: <br>
+                                <select id="type-input" onchange="FormFunctions.ShowHideTypeOther()">
+                                    <option value="ooze">Balçıksı</option>
+                                    <option value="plant">Bitki</option>
+                                    <option value="giant">Dev</option>
+                                    <option value="dragon">Ejderha</option>
+									<option value="elemental">Elemental</option>	
+                                    <option value="fey">Fey</option>									
+									<option value="aberration">Garabet</option>
+                                    <option value="beast">Hayvan</option>
+                                    <option value="undead">Hortlak</option>									
+                                    <option value="humanoid" selected>İnsansı</option>	
+                                    <option value="monstrosity">Mahlukat</option>									
+                                    <option value="celestial">Semavi</option>
+                                    <option value="construct">Yapıntı</option>
+                                    <option value="fiend">Zebani</option>
+                                    <option value="*">Diğer</option>
+                                </select>
+                            </label>
+                            <div><input id="other-type-input" type="text" value="swarm of Tiny beasts"></div>
+                        </td>
+                        <td>
+                            <label for="tag-input">Alttür: <br>
+                                <input id="tag-input" type="text"></label>
+                        </td>
+                        <td>
+                            <label for="alignment-input">Ahlaki Yönelim: <br>
+                                <input id="alignment-input" type="text" value="any alignment"></label>
+                        </td>
+                    </tr>
+                </table>
+                <hr>
+                <table id="armor-hitdice-form">
+                    <tr>
+                        <td></td>
+                        <td>
+                            <div id="hitdice-input-prompt"><label for="hitdice-input">Sağlık Zarı: <br><input type="number"
+                                        id="hitdice-input" min="1" max="99" value="5"></label></div>
+                            <div id="hp-text-input-prompt"><label for="hp-text-input">Sağlık Puanları:<br><input
+                                        id="hp-text-input" value="4 (1d8)"></label></div>
+                            <div id="custom-hp-box-prompt" class="box-note"><label for="custom-hp-input">(Özel SP:
+                                    <input id="custom-hp-input" type="checkbox"
+                                        onchange="FormFunctions.ShowHideCustomHP()">)</label></div>
+                        </td>
+                        <td>
+                            <label for="armor-input">Zırh Türü: <br>
+                                <select id="armor-input" onchange="FormFunctions.ShowHideOtherArmor()">
+                                    <option value="none" selected>Yok</option>
+                                    <option value="natural armor">Doğal Zırh</option>
+                                    <option value="mage armor">Büyücü Zırhı</option>
+                                    <option value="padded armor">Dolgu Zırh</option>
+                                    <option value="leather armor">Deri Zırh</option>
+                                    <option value="studded leather">Perçinli Deri Zırh</option>
+                                    <option value="hide armor">Post Zırh</option>
+                                    <option value="chain shirt">Zincir Gömlek</option>
+                                    <option value="scale mail">Pullu ZIrh</option>
+                                    <option value="breastplate">Göğüs Zırhı</option>
+                                    <option value="half plate">Yarım Plaka Zırh</option>
+                                    <option value="ring mail">Halka Zırh</option>
+                                    <option value="chain mail">Zincir Zırh</option>
+                                    <option value="splint">Geçmeli Zırh</option>
+                                    <option value="plate">Plaka Zırh</option>
+                                    <option value="other">Diğer</option>
+                                </select></label>
+                            <div id="shield-box-note" class="box-note"><label for="shield-input">(Kalkan: <input
+                                        id="shield-input" type="checkbox">)</label></div>
+                        </td>
+                        <td colspan="2">
+                            <div id="natarmor-prompt"><label for="natarmor-input">Doğal Zırh Bonusu:<br><input
+                                        type="number" id="natarmor-input" min="1" max="99" value="3"></label></div>
+                            <div id="otherarmor-prompt">
+                                <label for="otherarmor-input">Açıklama: <input id="otherarmor-input" type="text"
+                                        value="10 (armor)"></label><br>
+                                <div id="otherarmor-box-note" class="box-note"><i>Use _ to italicize</i></div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                <br>
+                <table id="monster-speed-form">
+                    <tr>
+                        <td class="normal-speed-col"><label for="speed-input">Hız:<br><input type="number"
+                                    id="speed-input" min="0" max="995" step="5" value="30"> ft.</label></td>
+                        <td class="normal-speed-col"><label for="burrow-speed-input">Oyuk Hızı:<br><input
+                                    type="number" id="burrow-speed-input" min="0" max="995" step="5" value="0">
+                                ft.</label></td>
+                        <td class="normal-speed-col"><label for="climb-speed-input">Tırmanma Hızı:<br><input type="number"
+                                    id="climb-speed-input" min="0" max="995" step="5" value="0"> ft.</label></td>
+                        <td class="normal-speed-col">
+                            <label for="fly-speed-input">Uçma Hızı:<br><input type="number" id="fly-speed-input" min="0"
+                                    max="995" step="5" value="0" onchange="FormFunctions.ShowHideHoverBox()">
+                                ft.</label>
+                            <div id="hover-box-note" class="box-note"><label for="hover-input">(Hover: <input
+                                        type="checkbox" id="hover-input">)</label></div>
+                        </td>
+                        <td class="normal-speed-col"><label for="swim-speed-input">Yüzme Hızı:<br><input type="number"
+                                    id="swim-speed-input" min="0" max="995" step="5" value="0"> ft.</label></td>
+                        <td colspan="5" class="custom-speed-col">
+                            <label for="custom-speed-prompt" style="width: 100%;">Hız: <input id="custom-speed-prompt"
+                                    type="text" value="30 ft."></label><br>
+                        </td>
+                        <td>
+                            <br>
+                            <div class="box-note">
+                                <label for="custom-speed-input">(Özel Hız: <input id="custom-speed-input"
+                                        type="checkbox" onchange="FormFunctions.ShowHideCustomSpeed()"> )</label>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                <hr>
+                <table id="monster-stats-form">
+                    <tr>
+                        <td><label for="str-input">KUV: <br><input type="number" id="str-input" min="1" max="99"
+                                    value="10" onchange="FormFunctions.ChangeBonus('str')"> (<span
+                                    id="strbonus"></span>)</label></td>
+                        <td><label for="dex-input">ÇEV: <br><input type="number" id="dex-input" min="1" max="99"
+                                    value="10" onchange="FormFunctions.ChangeBonus('dex')"> (<span
+                                    id="dexbonus"></span>)</label></td>
+                        <td><label for="con-input">DAY: <br><input type="number" id="con-input" min="1" max="99"
+                                    value="10" onchange="FormFunctions.ChangeBonus('con')"> (<span
+                                    id="conbonus"></span>)</label></td>
+                        <td><label for="int-input">ZEK: <br><input type="number" id="int-input" min="1" max="99"
+                                    value="10" onchange="FormFunctions.ChangeBonus('int')"> (<span
+                                    id="intbonus"></span>)</label></td>
+                        <td><label for="wis-input">BİL: <br><input type="number" id="wis-input" min="1" max="99"
+                                    value="10" onchange="FormFunctions.ChangeBonus('wis')"> (<span
+                                    id="wisbonus"></span>)</label></td>
+                        <td><label for="cha-input">KAR: <br><input type="number" id="cha-input" min="1" max="99"
+                                    value="10" onchange="FormFunctions.ChangeBonus('cha')"> (<span
+                                    id="chabonus"></span>)</label></td>
+                    </tr>
+                </table>
+                <hr>
+                <table id="properties-lists-form">
+                    <tr>
+                        <td id="sthrows-form">
+                            <label for="sthrows-input">Kurtarma Atışları:</label><br>
+                            <select id="sthrows-input">
+                                <option value="str">Kuvvet</option>
+                                <option value="dex">Çeviklik</option>
+                                <option value="con">Dayanıklılık</option>
+                                <option value="int">Zeka</option>
+                                <option value="wis">Bilgelik</option>
+                                <option value="cha">Karizma</option>
+                            </select>
+                            <button type="button" onclick="InputFunctions.AddSthrowInput()">Yeterlilik</button>
+                            <div id="sthrows-input-section">
+                                <ul id="sthrows-input-list" class="statblock-list"></ul>
+                            </div>
+                        </td>
+                        <td id="skills-form">
+                            <label for="skills-input">Yetenekler:</label><br>
+                            <select id="skills-input">
+                                <option value="acrobatics">Akbobasi</option>
+                                <option value="animal Handling">Hayvan İradesi</option>
+                                <option value="arcana">Mistik Kültür</option>
+                                <option value="athletics">Atletizm</option>
+                                <option value="deception">Aldatma</option>
+                                <option value="history">Tarih Bilgisi</option>
+                                <option value="insight">Sezgi</option>
+                                <option value="intimidation">Gözdağı</option>
+                                <option value="investigation">İnceleme</option>
+                                <option value="medicine">Sıhhiye</option>
+                                <option value="nature">Tabiat</option>
+                                <option value="perception">Tespit</option>
+                                <option value="performance">Performans</option>
+                                <option value="persuasion">İkna</option>
+                                <option value="religion">Din Kültürü</option>
+                                <option value="sleight of Hand">El Becerisi</option>
+                                <option value="stealth">Gizlilik</option>
+                                <option value="survival">Yaban İrfanı</option>
+                            </select>
+                            <button type="button" onclick="InputFunctions.AddSkillInput()">Yeterli</button>
+                            <button type="button" onclick="InputFunctions.AddSkillInput(' (ex)')">Uzman</button>
+                            <div id="skills-input-section">
+                                <ul id="skills-input-list" class="statblock-list"></ul>
+                            </div>
+                        </td>
+                        <td id="conditions-form">
+                            <label for="conditions-input">Durum Bağışıklıkları: </label><br>
+                            <select id="conditions-input">
+                                <option value="unconscious">Bilinçsiz</option>
+                                <option value="exhaustion">Bitkinlik</option>							
+                                <option value="charmed">Cezbedilme</option> 
+                                <option value="incapacitated">Etkisiz Halde</option>	
+                                <option value="paralyzed">Felç</option>
+                                <option value="invisible">Görünmez</option>								
+                                <option value="grappled">Kavranma</option>
+                                <option value="frightened">Korkma</option> 
+								<option value="blinded">Kör</option>
+                                <option value="deafened">Sağırlaşma</option>
+                                <option value="stunned">Sersemleme</option>								
+                                <option value="petrified">Taşlaşma</option>
+                                <option value="prone">Yere Düşme</option>
+                                <option value="restrained">Zapt Edilme</option>
+                                <option value="poisoned">Zehirlenme</option>
+                            </select>
+                            <button type="button" onclick="InputFunctions.AddConditionInput()">Bağışık</button>
+                            <div id="conditions-input-section">
+                                <ul id="conditions-input-list" class="statblock-list"></ul>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                <br>
+                <table>
+                    <tr>
+                        <td id="damagetypes-form">
+                            <label for="damagetypes-input">Hasar Türleri:<br>
+                                <select id="damagetypes-input" onchange="FormFunctions.ShowHideDamageOther()">
+                                     <option value="piercing">Delme</option>
+                                   <option value="bludgeoning">Ezme</option>
+                                    <option value="slashing">Kesme</option>								   
+                                    <option value="acid">Asit</option>		
+                                    <option value="fire">Ateş</option>	
+                                    <option value="necrotic">Çürüme</option>									
+                                    <option value="force">Güç</option>		
+                                    <option value="radiant">Işıltı</option>		
+                                    <option value="psychic">Psişik</option>	
+                                    <option value="thunder">Ses</option>									
+                                    <option value="cold">Soğuk</option>
+                                    <option value="lightning">Yıldırım</option>
+                                    <option value="poison">Zehir</option>
+                                    <option value="bludgeoning, piercing, and slashing from nonmagical attacks">
+                                        Büyülü Olmayan Saldırılar</option>
+                                    <option
+                                        value="bludgeoning, piercing, and slashing from nonmagical attacks that aren't silvered">
+                                        Gümüşlenmemiş Saldırılar</option>
+                                    <option
+                                        value="bludgeoning, piercing, and slashing from nonmagical attacks that aren't adamantine">
+                                        Adamantinsiz Saldırılar</option>
+                                    <option value="*">Diğer</option>
+                                </select>
+                            </label>
+                            <div><input id="other-damage-input" type="text" value=""></div>
+                            <div>
+                                <button type="button"
+                                    onclick="InputFunctions.AddDamageTypeInput('v')">Savunmasız</button>
+                                <button type="button"
+                                    onclick="InputFunctions.AddDamageTypeInput('r')">Dirençli</button>
+                                <button type="button" onclick="InputFunctions.AddDamageTypeInput('i')">Bağışık</button>
+                            </div>
+                            <div id="damage-input-section">
+                                <ul id="damage-input-list" class="statblock-list"></ul>
+                            </div>
+                        </td>
+                        <td id="languages-form">
+                            <label for="languages-input">Diller:<br>
+                                <select id="languages-input" onchange="FormFunctions.ShowHideLanguageOther()">
+                                    <option value="All">Hepsi</option>
+                                    <option value="Ignan">Ateş Dili</option>
+                                    <option value="Aquan">Deniz Dili</option>
+                                    <option value="Auran">Hava Dili</option>
+                                    <option value="Terran">Toprak Dili</option>
+                                    <option value="Common">Ortak Dil</option>
+									
+                                    <option value="Abyssal">Abis Dili</option>										
+                                    <option value="Halfling">Buçukluk Dili</option>			
+                                    <option value="Dwarvish">Cücece</option>		
+                                    <option value="Giant">Devce</option>			
+                                    <option value="Elvish">Elfçe</option>									
+                                    <option value="Deep Speech">Derin Konuşma</option>
+                                    <option value="Draconic">Ejderhaca</option>									
+                                    <option value="Gnomish">Gnomca</option>
+                                    <option value="Goblin">Goblince</option>			
+                                    <option value="Primordial">Kadim Lisan</option>		
+                                    <option value="Orc">Orkça</option>									
+                                    <option value="Undercommon">Ortakaltı</option>									
+                                    <option value="Celestial">Semavi Dili</option>
+                                    <option value="Sylvan">Silvan</option>
+                                    <option value="Infernal">Zebanice</option>
+                                    <option value="*">Diğer</option>
+                                </select>
+                            </label>
+                            <label for="telepathy-input" style="margin-left: .5rem;">Telepati:<br><input type="number"
+                                    id="telepathy-input" min="0" max="995" step="5" value="0"> ft.</label>
+                            <div>
+                                <input id="other-language-input" type="text" value="">
+                            </div>
+                            <div>
+                                <button type="button" onclick="InputFunctions.AddLanguageInput(true)">Konuşuyor</button>
+                                <button type="button"
+                                    onclick="InputFunctions.AddLanguageInput(false)">Anlıyor</button> fakat
+                                <input id="understands-but-input" type="text" value="konuşamıyor">
+                            </div>
+                            <div id="languages-input-section">
+                                <ul id="languages-input-list" class="statblock-list"></ul>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                <br>
+                <table id="senses-form">
+                    <tr>
+                        <td>
+                            <label for="blindsight-input">Körgörü: <input type="number" id="blindsight-input" min="0"
+                                    max="995" step="5" value="0" onchange="FormFunctions.ShowHideBlindBox()">
+                                ft.</label><br>
+                            <div id="blind-box-note" class="box-note"><label for="blindness-input">(Kör Ötesi: <input
+                                        type="checkbox" id="blindness-input">)</label></div>
+                        </td>
+                        <td><label for="darkvision-input">Karagörü: <input type="number" id="darkvision-input" min="0"
+                                    max="995" step="5" value="0"> ft.</label></td>
+                        <td><label for="tremorsense-input">Yerhissi: <input type="number" id="tremorsense-input"
+                                    min="0" max="995" step="5" value="0"> ft.</label></td>
+                        <td><label for="truesight-input">Hasgörü: <input type="number" id="truesight-input" min="0"
+                                    max="995" step="5" value="0"> ft.</label></td>
+                    </tr>
+                </table>
+                <br>
+                <div id="cr-form">
+                    <label for="cr-input">Tehdit Derecesi:
+                        <select id="cr-input" onchange="InputFunctions.InputCR()"></select>
+                    </label>
+                    <br>
+                    <div id="prof-bonus"></div>
+                    <div id="custom-cr">
+                        <label for="custom-cr-input">TD Metni: <input id="custom-cr-input" type="text" value="1 (200 XP)"
+                                placeholder="Leave blank to hide" style="width: 16rem;"></label>
+                        <br>
+                        <label for="custom-prof-input">Yeterlilik Bonusu: <input type="number" id="custom-prof-input"
+                                min="-99" max="99" value="2"></label>
+                    </div>
+                    <br>
+                </div>
+                <hr>
+                <table>
+                    <tr>
+
+                        <td>
+                            <label for="short-name-input" style="width: 100%; text-align: right;">Kısa
+                                Ad:</label>
+                        </td>
+                        <td>
+                            <input id="short-name-input" type="text" value="" placeholder="None" style="width: 30%;">
+                            <div class="tooltip">?<span class="tooltiptext">Bu, yetenek metnindeki [MON] yerine geçecektir,
+                                    boş bırakılmadığı sürece.</span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="plural-name-input" style="text-align: right; width: 100%;">Shortened Plural:</label>
+                        </td>
+                        <td>
+                            <input id="plural-name-input" type="text" value="" placeholder="None" style="width: 30%;">
+                            <div class="tooltip">?<span class="tooltiptext">This will replace [MONS] in ability
+                                    text, unless left blank.</span>
+                            </div>
+                        </td>
+                        </label>
+                    </tr>
+                </table>
+                <br>
+                <div>
+                    <label for="is-legendary-input"><b>Efsanevi Varlık:</b> <input type="checkbox"
+                            id="is-legendary-input" onclick="FormFunctions.ShowHideLegendaryCreature()"></label>
+                </div>
+                <div id="legendary-actions-form">
+                    <br>
+                    <label for="is-mythic-input"><b>Mitik:</b> <input type="checkbox" id="is-mythic-input"
+                            onclick="FormFunctions.ShowHideMythicCreature()"></label>
+                    <label for="has-lair-input"><b>İn:</b> <input type="checkbox" id="has-lair-input"
+                            onclick="FormFunctions.ShowHideLair()"></label>
+                    <label for="has-regional-input"><b>Bölge:</b> <input type="checkbox" id="has-regional-input"
+                            onclick="FormFunctions.ShowHideRegional()"></label>
+                    <br><br>
+                    <b>Efsanevi Aksiyon Açıklaması:</b>
+                    <div><label for="legendaries-descsection-input" style="width: 100%"><textarea
+                                id="legendaries-descsection-input" rows="4"></textarea></label></div>
+                    <div><button type="button" onclick="InputFunctions.LegendaryDescriptionDefaultInput()">Varsayılana
+                            Sıfırla</button></div>
+                </div>
+                <div id="mythic-actions-form">
+                    <br>
+                    <b>Mitik Aksiyon Açıklaması:</b>
+                    <div><label for="mythic-descsection-input" style="width: 100%"><textarea
+                                id="mythic-descsection-input" rows="4"></textarea></label></div>
+                    <div><button type="button" onclick="InputFunctions.MythicDescriptionDefaultInput()">Varsayılana
+                            Sıfırla</button></div>
+                </div>
+                <div id="lair-actions-form">
+                    <br>
+                    <b>İn Aksiyonu Açıklaması:</b>
+                    <div><label for="lair-descsection-input" style="width: 100%"><textarea id="lair-descsection-input"
+                                rows="4"></textarea></label></div>
+                    <b>İn Aksiyonu Sonlanma Açıklaması:</b>
+                    <div><label for="lair-end-descsection-input" style="width: 100%"><textarea
+                                id="lair-end-descsection-input" rows="4"></textarea></label></div>
+                    <div><button type="button" onclick="InputFunctions.LairDescriptionDefaultInput()">Varsayılana
+                            Sıfırla</button></div>
+                </div>
+                <div id="regional-actions-form">
+                    <br>
+                    <b>Bölgesel Etkiler Açıklaması:</b>
+                    <div><label for="regional-descsection-input" style="width: 100%"><textarea
+                                id="regional-descsection-input" rows="4"></textarea></label></div>
+                    <b>Bölgesel Etkiler Sonlanma Açıklaması:</b>
+                    <div><label for="regional-end-descsection-input" style="width: 100%"><textarea
+                                id="regional-end-descsection-input" rows="4"></textarea></label></div>
+                    <div><button type="button" onclick="InputFunctions.RegionalDescriptionDefaultInput()">Varsayılana
+                            Sıfırla</button></div>
+                </div>
+                <br>
+                <b>Kabiliyetler:</b>
+                <div><label for="abilities-name-input" style="width: 100%;">Name: <input id="abilities-name-input"
+                            type="text" value="" style="margin-right: 40px; width: 30%;"></label></div>
+                <div><textarea id="abilities-desc-input" style="height: 10em;"></textarea></div>
+                <div>
+                    <button type="button" id="add-ability-button"
+                        onclick="InputFunctions.AddAbilityInput('abilities')">Kabiliyet Ekle</button>
+                    <button type="button" id="add-action-button"
+                        onclick="InputFunctions.AddAbilityInput('actions')">Aksiyon Ekle</button>
+                    <button type="button" id="add-bonus-action-button"
+                        onclick="InputFunctions.AddAbilityInput('bonusActions')">Bonus Aksiyon Ekle</button>
+                    <button type="button" id="add-reaction-button"
+                        onclick="InputFunctions.AddAbilityInput('reactions')">Reaksiyon Ekle</button>
+                    <button type="button" id="add-legendary-button"
+                        onclick="InputFunctions.AddAbilityInput('legendaries')">Efsanevi Aksiyon Ekle</button>
+                    <button type="button" id="add-mythic-button"
+                        onclick="InputFunctions.AddAbilityInput('mythics')">Mitik Aksiyon Ekle</button>
+                    <button type="button" id="add-lair-button"
+                        onclick="InputFunctions.AddAbilityInput('lairs')">İn Aksiyonu Ekle</button>
+                    <button type="button" id="add-regional-button"
+                        onclick="InputFunctions.AddAbilityInput('regionals')">Bölgesel Etki Ekle</button>
+                </div>
+                <div>
+                    <select id="common-ability-input"></select>
+                    <button type="button" id="add-common-ability-button"
+                        onclick="InputFunctions.AddCommonAbilityInput()">Hazır Varlık Kullan</button>
+                </div>
+                <div>
+                    <label for="format-helper-checkbox">Formatlama Yardımını Göster: <input type="checkbox"
+                            id="format-helper-checkbox" onclick="FormFunctions.ShowHideFormatHelper()"></label>
+                </div>
+                <div id="format-helper" style="text-align: left; padding: 0 2rem;">
+                    <br>
+                    <div>Use _ to italicize and ** to bold. For Spellcasting lists, use > to reverse-indent.</div>
+                    <br>
+                    <div><b>[MON]</b>: Shows the monster's name.</div>
+                    <div><b>[CHA]</b>: Shows the monster's charisma modifier.</div>
+                    <div><b>[3D6]</b>: Computes 3d6.</div>
+                    <div><b>[STR ATK]</b>: Calculates the modifier to the monster's attack roll for a strength-based
+                        attack.</div>
+                    <div><b>[DEX 2D8]</b>: Calculates the damage roll for a dexterity-based attack with damage dice 2d8.
+                    </div>
+                    <div><b>[WIS SAVE]</b>: Calculates the save DC vs the monster's wisdom.</div>
+                    <div><b>[3D6 + 1], [STR ATK - 2], [WIS SAVE + 3]</b>: Adds a modifier to the given values.</div>
+                    <br>
+                </div>
+                <div style="text-align: left; min-height: 5rem;">
+                    <div id="abilities-input-section"><b>Kabiliyetler:</b><br>
+                        <ul id="abilities-input-list" class="statblock-list"></ul>
+                    </div>
+                    <div id="actions-input-section"><b>Aksiyonlar:</b><br>
+                        <ul id="actions-input-list" class="statblock-list"></ul>
+                    </div>
+                    <div id="bonusActions-input-section"><b>Bonus Aksiyonlar:</b><br>
+                        <ul id="bonusActions-input-list" class="statblock-list"></ul>
+                    </div>
+                    <div id="reactions-input-section"><b>Reaksiyonlar:</b><br>
+                        <ul id="reactions-input-list" class="statblock-list"></ul>
+                    </div>
+                    <div id="legendaries-input-section"><b>Efsanevi Aksiyonlar:</b><br>
+                        <ul id="legendaries-input-list" class="statblock-list"></ul>
+                    </div>
+                    <div id="mythic-input-section"><b>Mitik Aksiyonlar:</b><br>
+                        <ul id="mythics-input-list" class="statblock-list"></ul>
+                    </div>
+                    <div id="lairs-input-section"><b>İn Aksiyonları:</b><br>
+                        <ul id="lairs-input-list" class="statblock-list"></ul>
+                    </div>
+                    <div id="regionals-input-section"><b>Bölgesel Etkiler:</b><br>
+                        <ul id="regionals-input-list" class="statblock-list"></ul>
+                    </div>
+                </div>
+                <br>
+            </div>
+            <div class="footer"><a href="https://github.com/Tetra-cube/Tetra-cube.github.io">GitHub Repo</a></div>
+        </div>
+    </div>
+</body>
+
+</html>
