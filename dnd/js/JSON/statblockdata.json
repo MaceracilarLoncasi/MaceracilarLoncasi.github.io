@@ -123,21 +123,21 @@
 		"thunder"
 	],
 	"allConditions": [
-		"blinded",
-		"charmed",
-		"deafened",
-		"exhaustion",
-		"frightened",
-		"grappled",
-		"incapacitated",
-		"invisible",
-		"paralyzed",
-		"petrified",
-		"poisoned",
-		"prone",
-		"restrained",
-		"stunned",
-		"unconscious"
+		"bilinçsiz",
+		"bitkinlik",		
+		"cezbedilme",
+		"etkisiz halde",	
+		"felç",		
+		"görünmez",			
+		"kavranma",
+		"korkma",
+		"kör",
+		"sağırlaşma",
+		"sersemleme",
+		"taşlaşma",
+		"yere düşme",
+		"zapt edilme",
+		"zehirlenme"		
 	],
 	"sizes": {
 		"tiny": {
