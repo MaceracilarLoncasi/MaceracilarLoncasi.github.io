@@ -1,37 +1,37 @@
 {
 	"stats": [
 		{
-			"name": "kuv",
+			"name": "str",
 			"order": 0
 		},
 		{
-			"name": "çev",
+			"name": "dex",
 			"order": 1
 		},
 		{
-			"name": "day",
+			"name": "con",
 			"order": 2
 		},
 		{
-			"name": "zek",
+			"name": "int",
 			"order": 3
 		},
 		{
-			"name": "bil",
+			"name": "wis",
 			"order": 4
 		},
 		{
-			"name": "kar",
+			"name": "cha",
 			"order": 5
 		}
 	],
 	"statNames": [
-		"kuv",
-		"çev",
-		"day",
-		"zek",
-		"bil",
-		"kar"
+		"str",
+		"dex",
+		"con",
+		"int",
+		"irf",
+		"cha"
 	],
 	"allSkills": [
 		{
