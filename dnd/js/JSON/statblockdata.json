@@ -377,16 +377,16 @@
 	},
 	"defaultPreset": {
 		"slug": "",
-		"name": "Monster",
-		"size": "Medium",
-		"type": "humanoid",
+		"name": "Varlık",
+		"size": "Orta boy",
+		"type": "insansı",
 		"subtype": "",
 		"group": null,
-		"alignment": "any alignment",
+		"alignment": "herhangi ahlaki yönelim",
 		"armor_class": 10,
 		"armor_desc": null,
 		"hit_points": 22,
-		"hit_dice": "5d8",
+		"hit_dice": "5z8",
 		"speed": {
 			"walk": 30
 		},
@@ -407,7 +407,7 @@
 		"damage_resistances": "",
 		"damage_immunities": "",
 		"condition_immunities": "",
-		"senses": "passive Perception 10",
+		"senses": "pasif Tespit 10",
 		"languages": "",
 		"challenge_rating": "1",
 		"actions": "",
@@ -431,7 +431,7 @@
 	],
 	"commonAbilities": [
 		{
-			"name": "Select Preset",
+			"name": "Ön Ayarı Seç",
 			"desc": null
 		},
 		{
@@ -439,27 +439,27 @@
 			"desc": null
 		},
 		{
-			"name": "Melee Weapon Attack (STR)",
+			"name": "Yakın Dövüş Silahı Saldırısı (KUV)",
 			"realname": "",
 			"desc": "_Melee Weapon Attack:_ [STR ATK] to hit, reach ??? ft., one target. _Hit:_ [STR ???D???] ??? damage."
 		},
 		{
-			"name": "Melee Weapon Attack (DEX)",
+			"name": "Yakın Dövüş Silahı Saldırısı (ÇEV)",
 			"realname": "",
 			"desc": "_Melee Weapon Attack:_ [DEX ATK] to hit, reach ??? ft., one target. _Hit:_ [DEX ???D???] ??? damage."
 		},
 		{
-			"name": "Melee Spell Attack (INT)",
+			"name": "Yakın Büyü Saldırısı (ZEK)",
 			"realname": "",
 			"desc": "_Melee Spell Attack:_ [INT ATK] to hit, reach ??? ft., one target. _Hit:_ [INT ???D???] ??? damage."
 		},
 		{
-			"name": "Melee Spell Attack (WIS)",
+			"name": "Yakın Büyü Saldırısı (BİL)",
 			"realname": "",
 			"desc": "_Melee Spell Attack:_ [WIS ATK] to hit, reach ??? ft., one target. _Hit:_ [WIS ???D???] ??? damage."
 		},
 		{
-			"name": "Melee Spell Attack (CHA)",
+			"name": "Yakın Büyü Saldırısı (KAR)",
 			"realname": "",
 			"desc": "_Melee Spell Attack:_ [CHA ATK] to hit, reach ??? ft., one target. _Hit:_ [CHA ???D???] ??? damage."
 		},
