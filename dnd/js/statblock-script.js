@@ -1248,17 +1248,17 @@ var GetVariablesFunctions = {
         // Saving Throws
         mon.sthrows = [];
         if (preset.strength_save)
-            this.AddSthrow("str");
+            this.AddSthrow("Kuv");
         if (preset.dexterity_save)
-            this.AddSthrow("dex");
+            this.AddSthrow("Çev");
         if (preset.constitution_save)
-            this.AddSthrow("con");
+            this.AddSthrow("Day");
         if (preset.intelligence_save)
-            this.AddSthrow("int");
+            this.AddSthrow("Zek");
         if (preset.wisdom_save)
-            this.AddSthrow("wis");
+            this.AddSthrow("Bil");
         if (preset.charisma_save)
-            this.AddSthrow("cha");
+            this.AddSthrow("Kar");
 
         // Skills
         mon.skills = [];
