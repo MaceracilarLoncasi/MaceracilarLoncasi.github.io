@@ -35,8 +35,8 @@
 	],
 	"allSkills": [
 		{
-			"name": "akrobasi",
-			"stat": "çev"
+			"name": "acrobatics",
+			"stat": "dex"
 		},
 		{
 			"name": "animal Handling",
