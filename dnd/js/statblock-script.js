@@ -7,7 +7,7 @@ var mon = {
     tag: "",
     alignment: "herhangi bir ahlaki yönelim",
     hitDice: 5,
-    armorName: "none",
+    armorName: "yok",
     shieldBonus: 0,
     natArmorBonus: 3,
     otherArmorDesc: "10 (zırh)",
@@ -19,7 +19,7 @@ var mon = {
     swimSpeed: 0,
     customHP: false,
     customSpeed: false,
-    hpText: "4 (1d8)",
+    hpText: "4 (1z8)",
     speedDesc: "30 ft.",
     strPoints: 10,
     dexPoints: 10,
@@ -441,9 +441,9 @@ function BuildMarkdown(isV3Markdown) {
         `## ${mon.name}`,
         `*${StringFunctions.StringCapitalize(mon.size)} ${mon.type}${mon.tag != "" ? ` (${mon.tag})`  : ""}, ${mon.alignment}*`,
         `___`,
-        PrintMarkdownProperty(isV3Markdown, "Armor Class", StringFunctions.FormatString(StringFunctions.GetArmorData())),
-        PrintMarkdownProperty(isV3Markdown, "Hit Points", StringFunctions.GetHP()), 
-        PrintMarkdownProperty(isV3Markdown, "Speed", StringFunctions.GetSpeed()),
+        PrintMarkdownProperty(isV3Markdown, "Zırh Sınıfı", StringFunctions.FormatString(StringFunctions.GetArmorData())),
+        PrintMarkdownProperty(isV3Markdown, "Sağlık Puanları", StringFunctions.GetHP()), 
+        PrintMarkdownProperty(isV3Markdown, "Hız", StringFunctions.GetSpeed()),
         `___`);
     AddMarkdownAttributesTable(markdownLines);
     markdownLines.push("___");
@@ -458,19 +458,19 @@ function BuildMarkdown(isV3Markdown) {
     }
 
     markdownLines.push(
-        PrintMarkdownProperty(isV3Markdown, "Challenge", mon.cr == "*" ? mon.customCr : `${mon.cr} (${data.crs[mon.cr].xp} XP)`),
+        PrintMarkdownProperty(isV3Markdown, "Tehdit", mon.cr == "*" ? mon.customCr : `${mon.cr} (${data.crs[mon.cr].xp} XP)`),
         "___");
 
     AddMarkdownTraitSection(markdownLines, isV3Markdown, null, mon.abilities);
-    AddMarkdownTraitSection(markdownLines, isV3Markdown, "Actions", mon.actions);
-    AddMarkdownTraitSection(markdownLines, isV3Markdown, "Bonus Actions", mon.bonusActions);
-    AddMarkdownTraitSection(markdownLines, isV3Markdown, "Reactions", mon.reactions);
+    AddMarkdownTraitSection(markdownLines, isV3Markdown, "Aksiyonlar", mon.actions);
+    AddMarkdownTraitSection(markdownLines, isV3Markdown, "Bonus Aksiyonlar", mon.bonusActions);
+    AddMarkdownTraitSection(markdownLines, isV3Markdown, "Reaksiyonlar", mon.reactions);
 
     if (mon.isLegendary) {
-        AddMarkdownTraitSection(markdownLines, isV3Markdown, "Legendary Actions", mon.legendaries, mon.legendariesDescription, null, LEGENDARY);
-        if (mon.isMythic) AddMarkdownTraitSection(markdownLines, isV3Markdown, "Mythic Actions", mon.mythics, mon.mythicDescription, null, MYTHIC);
-        if (mon.isLair) AddMarkdownTraitSection(markdownLines, isV3Markdown, "Lair Actions", mon.lairs, mon.lairDescription, mon.lairDescriptionEnd, LAIR);
-        if (mon.isRegional) AddMarkdownTraitSection(markdownLines, isV3Markdown, "Regional Effects", mon.regionals, mon.regionalDescription, mon.regionalDescriptionEnd, REGIONAL);
+        AddMarkdownTraitSection(markdownLines, isV3Markdown, "Efsanevi Aksiyonlar", mon.legendaries, mon.legendariesDescription, null, LEGENDARY);
+        if (mon.isMythic) AddMarkdownTraitSection(markdownLines, isV3Markdown, "Mitik Aksiyonlar", mon.mythics, mon.mythicDescription, null, MYTHIC);
+        if (mon.isLair) AddMarkdownTraitSection(markdownLines, isV3Markdown, "İn Aksiyonları", mon.lairs, mon.lairDescription, mon.lairDescriptionEnd, LAIR);
+        if (mon.isRegional) AddMarkdownTraitSection(markdownLines, isV3Markdown, "Bölgesel Etkiler", mon.regionals, mon.regionalDescription, mon.regionalDescriptionEnd, REGIONAL);
     }
 
     if (isV3Markdown) {
@@ -495,7 +495,7 @@ function PrintMarkdownProperty(isV3Markdown, name, value) {
 
 function AddMarkdownAttributesTable(markdown) {
     markdown.push(
-        `|STR|DEX|CON|INT|WIS|CHA|`,
+        `|KUV|ÇEV|DAY|ZEK|BİL|KAR|`,
         `|:---:|:---:|:---:|:---:|:---:|:---:|`,
         `|${mon.strPoints} (${StringFunctions.BonusFormat(MathFunctions.PointsToBonus(mon.strPoints))})|` +
         `${mon.dexPoints} (${StringFunctions.BonusFormat(MathFunctions.PointsToBonus(mon.dexPoints))})|` +
