@@ -1,648 +1,1239 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="tr">
 <head>
-    <meta charset="utf-8" />
-    <title>D&amp;D 5e Varlık Kağıdı Oluştur</title>
-    <link rel="shortcut icon" type="image/x-icon" href="dndimages/favicon.ico" />
-    <link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="css/statblock-style.css">
-    <link rel="stylesheet" type="text/css" href="css/statblock-page-style.css">
-    <link rel="stylesheet" type="text/css" href="css/dnd-style.css">
-    <link rel="stylesheet" type="text/css" href="css/libre-baskerville.css">
-    <link rel="stylesheet" type="text/css" href="css/noto-sans.css">
-    <script src="js/jquery-3.4.1.min.js"></script>
-    <script src="js/bootstrap.min.js"></script>
-    <script src="js/FileSaver.min.js"></script>
-    <script src="js/dom-to-image.min.js"></script>
-    <script src="js/statblock-script.js"></script>
-
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-145234284-1"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-
-        gtag('config', 'UA-145234284-1');
-    </script>
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Varlık Karakteri Oluşturma</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React ve ReactDOM CDNs -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <!-- Tarayıcıda JSX dönüşümü için Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- html2canvas CDN for PNG export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+      /* Google Fonts'tan Inter yazı tipi */
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+      body {
+          font-family: 'Inter', sans-serif;
+      }
+      /* Daha iyi görünüm için özel kaydırma çubuğu */
+      ::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb {
+          background: #888;
+          border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+          background: #555;
+      }
+    </style>
 </head>
+<body>
+    <div id="root"></div>
 
-<body id="stat-block-body" style="min-width: 1000px;">
-    <div class="container" style="text-align: center;">
-        <div id="kofiheader" style="text-align: center;">
-            <br>
-            <script src='https://ko-fi.com/widgets/widget_2.js'></script>
+    <script type="text/babel">
+        // Yardımcı fonksiyon: Kabiliyet puanını D&D 5e Ability Modifiers tablosuna göre etkene dönüştürür.
+        const calculateModifier = (score) => {
+          if (score === 1) return -5;
+          if (score >= 2 && score <= 3) return -4;
+          if (score >= 4 && score <= 5) return -3;
+          if (score >= 6 && score <= 7) return -2;
+          if (score >= 8 && score <= 9) return -1;
+          if (score >= 10 && score <= 11) return 0;
+          if (score >= 12 && score <= 13) return 1;
+          if (score >= 14 && score <= 15) return 2;
+          if (score >= 16 && score <= 17) return 3;
+          if (score >= 18 && score <= 19) return 4;
+          if (score >= 20 && score <= 21) return 5;
+          if (score >= 22 && score <= 23) return 6;
+          if (score >= 24 && score <= 25) return 7;
+          if (score >= 26 && score <= 27) return 8;
+          if (score >= 28 && score <= 29) return 9;
+          if (score === 30) return 10;
+          return 0; // Geçersiz veya beklenmeyen puanlar için varsayılan
+        };
 
-            <br>
-        </div>
-            <p>Based on <a href="http://valloric.github.io/statblock5e/">Statblock5e</a> ve <a
-                    href="https://open5e.com/">Open5e</a> temel alındı.<a href="https://tetra-cube.com/">Tetra-Cube</a> çalışmasıdır.</p>
-            <br>
-            <button onclick="TrySaveFile()">Varlık Kağıdını Kaydet</button>
-            <button onclick="LoadFilePrompt()">Varlık Kağıdı Yükle</button>
-            <button onclick="TryPrint()">Basılabilir Kağıt</button>
-            <button onclick="TryImage()">Resmi Görüntüle</button>
-            <button onclick="TryMarkdown()">Markdown Görüntüle</button>
-            <input id="file-upload" type="file" onChange="TryLoadFile();" hidden />
-            <br><br>
-            <div id="monster-select-form">Hazır Varlıklar(Güncellenecek): <select id="monster-select">
-                    <option value="">-Varlıklar-</option>
-                    <option value="default">Varsayılanı Geri Yükle</option>
-                </select> <button type="button" id="monster-select-button" onclick="InputFunctions.GetPreset()">Hazır Varlığı Kullan</button></div>
-            <br>
+        // Yardımcı fonksiyon: Sayısal bir modifikatörü string olarak döndürür (+/- ön ekiyle).
+        // Bu fonksiyon artık sadece hesaplanmış modifikatör değerlerini bekler.
+        const formatModifier = (mod) => {
+          return mod >= 0 ? `+${mod}` : `${mod}`;
+        };
 
-            <!-- The Actual Stat Block -->
-            <div id="stat-block-wrapper">
-                <div id="stat-block" class="stat-block">
-                    <hr class="orange-border" />
-                    <div class="section-left">
-                        <div class="creature-heading">
-                            <h1 id="monster-name">Varlık</h1>
-                            <h2 id="monster-type">Boy, tür, yönelim</h2>
-                        </div> <!-- creature heading -->
-                        <svg height="5" width="100%" class="tapered-rule">
-                            <polyline points="0,0 400,2.5 0,5"></polyline>
-                        </svg>
-                        <div class="top-stats">
-                            <div class="property-line first">
-                                <h4>Zırh Sınıfı</h4>
-                                <p id="armor-class"></p>
-                            </div> <!-- property line -->
-                            <div class="property-line">
-                                <h4>Sağlık Puanları</h4>
-                                <p id="hit-points"></p>
-                            </div> <!-- property line -->
-                            <div class="property-line last">
-                                <h4>Hız</h4>
-                                <p id="speed"></p>
-                            </div> <!-- property line -->
-                            <svg height="5" width="100%" class="tapered-rule">
-                                <polyline points="0,0 400,2.5 0,5"></polyline>
-                            </svg>
-                            <div class="scores">
-                                <div class="scores-strength">
-                                    <h4>KUV</h4>
-                                    <p id="strpts"></p>
-                                </div> <!-- scores strength -->
-                                <div class="scores-dexterity">
-                                    <h4>ÇEV</h4>
-                                    <p id="dexpts"></p>
-                                </div> <!-- scores dexterity -->
-                                <div class="scores-constitution">
-                                    <h4>DAY</h4>
-                                    <p id="conpts"></p>
-                                </div> <!-- scores constitution -->
-                                <div class="scores-intelligence">
-                                    <h4>ZEK</h4>
-                                    <p id="intpts"></p>
-                                </div> <!-- scores intelligence -->
-                                <div class="scores-wisdom">
-                                    <h4>BİL</h4>
-                                    <p id="wispts"></p>
-                                </div> <!-- scores wisdom -->
-                                <div class="scores-charisma">
-                                    <h4>KAR</h4>
-                                    <p id="chapts"></p>
-                                </div> <!-- scores charisma -->
-                            </div> <!-- scores -->
-                            <svg height="5" width="100%" class="tapered-rule">
-                                <polyline points="0,0 400,2.5 0,5"></polyline>
-                            </svg>
-                            <div id="properties-list"></div>
-                            <div id="challenge-rating-line" class="property-line last">
-                                <h4>Tehdit Derecesi</h4>
-                                <p id="challenge-rating"></p>
-                            </div> <!-- property line -->
-                        </div> <!-- top stats -->
-                        <svg height="5" width="100%" class="tapered-rule">
-                            <polyline points="0,0 400,2.5 0,5"></polyline>
-                        </svg>
-                        <div class="actions">
-                            <div id="traits-list-left"></div>
-                        </div> <!-- actions -->
-                    </div> <!-- section left -->
-                    <div class="section-right">
-                        <div class="actions">
-                            <div id="traits-list-right"></div>
-                        </div> <!-- actions -->
-                    </div> <!-- section right -->
-                    <hr class="orange-border bottom" />
-                </div>
-            </div> <!-- stat block -->
+        // Yetenek Tanımları: Her yetenek ve ilişkili anahtar istatistiği, Türkçe isimleriyle
+        const skillDefinitions = [
+            { name: 'Akrobasi', ability: 'dex' },
+            { name: 'Aldatma', ability: 'cha' },
+            { name: 'Atletizm', ability: 'str' },
+            { name: 'Din Kültürü', ability: 'int' },
+            { name: 'El Becerisi', ability: 'dex' },
+            { name: 'Gizlilik', ability: 'dex' },
+            { name: 'Gözdağı', ability: 'cha' },
+            { name: 'Hayvan İradesi', ability: 'wis' },
+            { name: 'İkna', ability: 'cha' },
+            { name: 'İnceleme', ability: 'int' },
+            { name: 'Mistik Kültür', ability: 'int' },
+            { name: 'Performans', ability: 'cha' },
+            { name: 'Sezgi', ability: 'wis' },
+            { name: 'Sıhhiye', ability: 'wis' },
+            { name: 'Tabiat', ability: 'int' },
+            { name: 'Tarih Bilgisi', ability: 'int' },
+            { name: 'Tespit', ability: 'wis' },
+            { name: 'Yaban İrfanı', ability: 'wis' },
+        ].sort((a, b) => a.name.localeCompare(b.name));
 
-            <div class="options">
-                <form>
-                    <label for="1col-input"><input id="1col-input" type="radio" name="columns-input" value="1col"
-                            checked> Tek Sütun</label>
-                    <label for="2col-input" style="margin-left: .5rem;"><input id="2col-input" type="radio"
-                            name="columns-input" value="2col"> Çift Sütun</label>
-                </form>
-                <button id="left-separator-button" type="button" onclick="UpdateBlockFromVariables(1)">&lt;&lt;</button>
-                <button type="button" onclick="UpdateBlockFromVariables(0)">Varlık Kağıdını Güncelle</button>
-                <button id="right-separator-button" type="button" onclick="UpdateBlockFromVariables(-1)">>></button>
-                <hr>
-                <table id="type-form">
-                    <tr>
-                        <td>
-                            <label for="name-input">Ad: <br><input id="name-input" type="text"
-                                    value="Varlık Adı"></label>
-                        </td>
-                        <td>
-                            <label for="size-input">Boyut: <br>
-                                <select id="size-input">
-                                    <option value="tiny">Ufacık</option>
-                                    <option value="small">Kısa boy</option>
-                                    <option value="medium" selected="selected">Orta boy</option>
-                                    <option value="large">Büyük boy</option>
-                                    <option value="huge">Kocaman</option>
-                                    <option value="gargantuan">Devasa</option>
-                                </select>
-                            </label>
-                        </td>
-                        <td>
-                            <label for="type-input">Tür: <br>
-                                <select id="type-input" onchange="FormFunctions.ShowHideTypeOther()">
-                                    <option value="ooze">Balçıksı</option>
-                                    <option value="plant">Bitki</option>
-                                    <option value="giant">Dev</option>
-                                    <option value="dragon">Ejderha</option>
-									<option value="elemental">Elemental</option>	
-                                    <option value="fey">Fey</option>									
-									<option value="aberration">Garabet</option>
-                                    <option value="beast">Hayvan</option>
-                                    <option value="undead">Hortlak</option>									
-                                    <option value="humanoid" selected>İnsansı</option>	
-                                    <option value="monstrosity">Mahlukat</option>									
-                                    <option value="celestial">Semavi</option>
-                                    <option value="construct">Yapıntı</option>
-                                    <option value="fiend">Zebani</option>
-                                    <option value="*">Diğer</option>
-                                </select>
-                            </label>
-                            <div><input id="other-type-input" type="text" value="İnsan"></div>
-                        </td>
-                        <td>
-                            <label for="tag-input">Alttür: <br>
-                                <input id="tag-input" type="text"></label>
-                        </td>
-                        <td>
-                            <label for="alignment-input">Ahlaki Yönelim: <br>
-                                <input id="alignment-input" type="text" value="herhangi ahlaki yönelim"></label>
-                        </td>
-                    </tr>
-                </table>
-                <hr>
-                <table id="armor-hitdice-form">
-                    <tr>
-                        <td></td>
-                        <td>
-                            <div id="hitdice-input-prompt"><label for="hitdice-input">Sağlık Zarı: <br><input type="number"
-                                        id="hitdice-input" min="1" max="99" value="5"></label></div>
-                            <div id="hp-text-input-prompt"><label for="hp-text-input">Sağlık Puanları:<br><input
-                                        id="hp-text-input" value="4 (1z8)"></label></div>
-                            <div id="custom-hp-box-prompt" class="box-note"><label for="custom-hp-input">(Özel SP:
-                                    <input id="custom-hp-input" type="checkbox"
-                                        onchange="FormFunctions.ShowHideCustomHP()">)</label></div>
-                        </td>
-                        <td>
-                            <label for="armor-input">Zırh Türü: <br>
-                                <select id="armor-input" onchange="FormFunctions.ShowHideOtherArmor()">
-                                    <option value="none" selected>Yok</option>
-                                    <option value="natural armor">Doğal Zırh</option>
-                                    <option value="mage armor">Büyücü Zırhı</option>
-                                    <option value="padded armor">Dolgu Zırh</option>
-                                    <option value="leather armor">Deri Zırh</option>
-                                    <option value="studded leather">Perçinli Deri Zırh</option>
-                                    <option value="hide armor">Post Zırh</option>
-                                    <option value="chain shirt">Zincir Gömlek</option>
-                                    <option value="scale mail">Pullu ZIrh</option>
-                                    <option value="breastplate">Göğüs Zırhı</option>
-                                    <option value="half plate">Yarım Plaka Zırh</option>
-                                    <option value="ring mail">Halka Zırh</option>
-                                    <option value="chain mail">Zincir Zırh</option>
-                                    <option value="splint">Geçmeli Zırh</option>
-                                    <option value="plate">Plaka Zırh</option>
-                                    <option value="other">Diğer</option>
-                                </select></label>
-                            <div id="shield-box-note" class="box-note"><label for="shield-input">(Kalkan: <input
-                                        id="shield-input" type="checkbox">)</label></div>
-                        </td>
-                        <td colspan="2">
-                            <div id="natarmor-prompt"><label for="natarmor-input">Doğal Zırh Bonusu:<br><input
-                                        type="number" id="natarmor-input" min="1" max="99" value="3"></label></div>
-                            <div id="otherarmor-prompt">
-                                <label for="otherarmor-input">Açıklama: <input id="otherarmor-input" type="text"
-                                        value="10 (armor)"></label><br>
-                                <div id="otherarmor-box-note" class="box-note"><i>İtalik hale getirmek için _ kullanın</i></div>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-                <br>
-                <table id="monster-speed-form">
-                    <tr>
-                        <td class="normal-speed-col"><label for="speed-input">Hız:<br><input type="number"
-                                    id="speed-input" min="0" max="995" step="5" value="30"> ft.</label></td>
-                        <td class="normal-speed-col"><label for="burrow-speed-input">Oyuk Hızı:<br><input
-                                    type="number" id="burrow-speed-input" min="0" max="995" step="5" value="0">
-                                ft.</label></td>
-                        <td class="normal-speed-col"><label for="climb-speed-input">Tırmanma Hızı:<br><input type="number"
-                                    id="climb-speed-input" min="0" max="995" step="5" value="0"> ft.</label></td>
-                        <td class="normal-speed-col">
-                            <label for="fly-speed-input">Uçma Hızı:<br><input type="number" id="fly-speed-input" min="0"
-                                    max="995" step="5" value="0" onchange="FormFunctions.ShowHideHoverBox()">
-                                ft.</label>
-                            <div id="hover-box-note" class="box-note"><label for="hover-input">(Süzülme: <input
-                                        type="checkbox" id="hover-input">)</label></div>
-                        </td>
-                        <td class="normal-speed-col"><label for="swim-speed-input">Yüzme Hızı:<br><input type="number"
-                                    id="swim-speed-input" min="0" max="995" step="5" value="0"> ft.</label></td>
-                        <td colspan="5" class="custom-speed-col">
-                            <label for="custom-speed-prompt" style="width: 100%;">Hız: <input id="custom-speed-prompt"
-                                    type="text" value="30 ft."></label><br>
-                        </td>
-                        <td>
-                            <br>
-                            <div class="box-note">
-                                <label for="custom-speed-input">(Özel Hız: <input id="custom-speed-input"
-                                        type="checkbox" onchange="FormFunctions.ShowHideCustomSpeed()"> )</label>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-                <hr>
-                <table id="monster-stats-form">
-                    <tr>
-                        <td><label for="str-input">KUV: <br><input type="number" id="str-input" min="1" max="99"
-                                    value="10" onchange="FormFunctions.ChangeBonus('str')"> (<span
-                                    id="strbonus"></span>)</label></td>
-                        <td><label for="dex-input">ÇEV: <br><input type="number" id="dex-input" min="1" max="99"
-                                    value="10" onchange="FormFunctions.ChangeBonus('dex')"> (<span
-                                    id="dexbonus"></span>)</label></td>
-                        <td><label for="con-input">DAY: <br><input type="number" id="con-input" min="1" max="99"
-                                    value="10" onchange="FormFunctions.ChangeBonus('con')"> (<span
-                                    id="conbonus"></span>)</label></td>
-                        <td><label for="int-input">ZEK: <br><input type="number" id="int-input" min="1" max="99"
-                                    value="10" onchange="FormFunctions.ChangeBonus('int')"> (<span
-                                    id="intbonus"></span>)</label></td>
-                        <td><label for="wis-input">BİL: <br><input type="number" id="wis-input" min="1" max="99"
-                                    value="10" onchange="FormFunctions.ChangeBonus('wis')"> (<span
-                                    id="wisbonus"></span>)</label></td>
-                        <td><label for="cha-input">KAR: <br><input type="number" id="cha-input" min="1" max="99"
-                                    value="10" onchange="FormFunctions.ChangeBonus('cha')"> (<span
-                                    id="chabonus"></span>)</label></td>
-                    </tr>
-                </table>
-                <hr>
-                <table id="properties-lists-form">
-                    <tr>
-                        <td id="sthrows-form">
-                            <label for="sthrows-input">Kurtarma Atışları:</label><br>
-                            <select id="sthrows-input">
-                                <option value="str">Kuvvet</option>
-                                <option value="dex">Çeviklik</option>
-                                <option value="con">Dayanıklılık</option>
-                                <option value="int">Zeka</option>
-                                <option value="wis">Bilgelik</option>
-                                <option value="cha">Karizma</option>
-                            </select>
-                            <button type="button" onclick="InputFunctions.AddSthrowInput()">Yeterlilik</button>
-                            <div id="sthrows-input-section">
-                                <ul id="sthrows-input-list" class="statblock-list"></ul>
-                            </div>
-                        </td>
-                        <td id="skills-form">
-                            <label for="skills-input">Yetenekler:</label><br>
-                            <select id="skills-input">
-                                <option value="acrobatics">Akbobasi</option>
-                                <option value="deception">Aldatma</option>	
-                                <option value="athletics">Atletizm</option>		
-                                <option value="religion">Din Kültürü</option>
-                                <option value="sleight of Hand">El Becerisi</option>	
-                                <option value="stealth">Gizlilik</option>				
-                                <option value="intimidation">Gözdağı</option>								
-                                <option value="animal Handling">Hayvan İradesi</option>
-                                <option value="persuasion">İkna</option>	
-                                <option value="investigation">İnceleme</option>								
-                                <option value="arcana">Mistik Kültür</option>
-                                <option value="performance">Performans</option>
-                                <option value="insight">Sezgi</option>
-                                <option value="medicine">Sıhhiye</option>
-                                <option value="nature">Tabiat</option>
-                                <option value="history">Tarih Bilgisi</option>								
-                                <option value="perception">Tespit</option>
-                                <option value="survival">Yaban İrfanı</option>
-                            </select>
-                            <button type="button" onclick="InputFunctions.AddSkillInput()">Yeterli</button>
-                            <button type="button" onclick="InputFunctions.AddSkillInput(' (ex)')">Uzman</button>
-                            <div id="skills-input-section">
-                                <ul id="skills-input-list" class="statblock-list"></ul>
-                            </div>
-                        </td>
-                        <td id="conditions-form">
-                            <label for="conditions-input">Durum Bağışıklıkları: </label><br>
-                            <select id="conditions-input">
-                                <option value="unconscious">Bilinçsiz</option>
-                                <option value="exhaustion">Bitkinlik</option>							
-                                <option value="charmed">Cezbedilme</option> 
-                                <option value="incapacitated">Etkisiz Halde</option>	
-                                <option value="paralyzed">Felç</option>
-                                <option value="invisible">Görünmez</option>								
-                                <option value="grappled">Kavranma</option>
-                                <option value="frightened">Korkma</option> 
-								<option value="blinded">Kör</option>
-                                <option value="deafened">Sağırlaşma</option>
-                                <option value="stunned">Sersemleme</option>								
-                                <option value="petrified">Taşlaşma</option>
-                                <option value="prone">Yere Düşme</option>
-                                <option value="restrained">Zapt Edilme</option>
-                                <option value="poisoned">Zehirlenme</option>
-                            </select>
-                            <button type="button" onclick="InputFunctions.AddConditionInput()">Bağışık</button>
-                            <div id="conditions-input-section">
-                                <ul id="conditions-input-list" class="statblock-list"></ul>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-                <br>
-                <table>
-                    <tr>
-                        <td id="damagetypes-form">
-                            <label for="damagetypes-input">Hasar Türleri:<br>
-                                <select id="damagetypes-input" onchange="FormFunctions.ShowHideDamageOther()">
-                                     <option value="piercing">Delme</option>
-                                   <option value="bludgeoning">Ezme</option>
-                                    <option value="slashing">Kesme</option>								   
-                                    <option value="acid">Asit</option>		
-                                    <option value="fire">Ateş</option>	
-                                    <option value="necrotic">Çürüme</option>									
-                                    <option value="force">Güç</option>		
-                                    <option value="radiant">Işıltı</option>		
-                                    <option value="psychic">Psişik</option>	
-                                    <option value="thunder">Ses</option>									
-                                    <option value="cold">Soğuk</option>
-                                    <option value="lightning">Yıldırım</option>
-                                    <option value="poison">Zehir</option>
-                                    <option value="büyülü olmayan delme, ezme, kesme hasarları">
-                                        Büyülü Olmayan Saldırılar</option>
-                                    <option
-                                        value="gümüşlenmemiş büyülü olmayan delme, ezme, kesme hasarları">
-                                        Gümüşlenmemiş Saldırılar</option>
-                                    <option
-                                        value="adamantin olmayan büyüsüz delme, ezme, kesme hasarları">
-                                        Adamantinsiz Saldırılar</option>
-                                    <option value="*">Diğer</option>
-                                </select>
-                            </label>
-                            <div><input id="other-damage-input" type="text" value=""></div>
-                            <div>
-                                <button type="button"
-                                    onclick="InputFunctions.AddDamageTypeInput('v')">Savunmasız</button>
-                                <button type="button"
-                                    onclick="InputFunctions.AddDamageTypeInput('r')">Dirençli</button>
-                                <button type="button" onclick="InputFunctions.AddDamageTypeInput('i')">Bağışık</button>
-                            </div>
-                            <div id="damage-input-section">
-                                <ul id="damage-input-list" class="statblock-list"></ul>
-                            </div>
-                        </td>
-                        <td id="languages-form">
-                            <label for="languages-input">Diller:<br>
-                                <select id="languages-input" onchange="FormFunctions.ShowHideLanguageOther()">
-                                    <option value="All">Hepsi</option>
-                                    <option value="Ignan">Ateş Dili</option>
-                                    <option value="Aquan">Deniz Dili</option>
-                                    <option value="Auran">Hava Dili</option>
-                                    <option value="Terran">Toprak Dili</option>
-                                    <option value="Common">Ortak Dil</option>
-									
-                                    <option value="Abyssal">Abis Dili</option>										
-                                    <option value="Halfling">Buçukluk Dili</option>			
-                                    <option value="Dwarvish">Cücece</option>		
-                                    <option value="Giant">Devce</option>			
-                                    <option value="Elvish">Elfçe</option>									
-                                    <option value="Draconic">Ejderha Dili</option>									
-                                    <option value="Gnomish">Gnomca</option>
-                                    <option value="Goblin">Goblince</option>			
-                                    <option value="Primordial">Kadim Lisan</option>		
-                                    <option value="Orc">Orkça</option>									
-                                    <option value="Undercommon">Ortakaltı</option>									
-                                    <option value="Celestial">Semavi Dili</option>
-                                    <option value="Sylvan">Silvan</option>
-                                    <option value="Deep Speech">Uzak Lisan</option>									
-                                    <option value="Infernal">Zebanice</option>
-                                    <option value="*">Diğer</option>
-                                </select>
-                            </label>
-                            <label for="telepathy-input" style="margin-left: .5rem;">Telepati:<br><input type="number"
-                                    id="telepathy-input" min="0" max="995" step="5" value="0"> ft.</label>
-                            <div>
-                                <input id="other-language-input" type="text" value="">
-                            </div>
-                            <div>
-                                <button type="button" onclick="InputFunctions.AddLanguageInput(true)">Konuşuyor</button>
-                                <button type="button"
-                                    onclick="InputFunctions.AddLanguageInput(false)">Anlıyor</button> fakat
-                                <input id="understands-but-input" type="text" value="konuşamıyor">
-                            </div>
-                            <div id="languages-input-section">
-                                <ul id="languages-input-list" class="statblock-list"></ul>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-                <br>
-                <table id="senses-form">
-                    <tr>
-                        <td>
-                            <label for="blindsight-input">Körgörü: <input type="number" id="blindsight-input" min="0"
-                                    max="995" step="5" value="0" onchange="FormFunctions.ShowHideBlindBox()">
-                                ft.</label><br>
-                            <div id="blind-box-note" class="box-note"><label for="blindness-input">(Körötesi: <input
-                                        type="checkbox" id="blindness-input">)</label></div>
-                        </td>
-                        <td><label for="darkvision-input">Karagörü: <input type="number" id="darkvision-input" min="0"
-                                    max="995" step="5" value="0"> ft.</label></td>
-                        <td><label for="tremorsense-input">Yerhissi: <input type="number" id="tremorsense-input"
-                                    min="0" max="995" step="5" value="0"> ft.</label></td>
-                        <td><label for="truesight-input">Hasgörü: <input type="number" id="truesight-input" min="0"
-                                    max="995" step="5" value="0"> ft.</label></td>
-                    </tr>
-                </table>
-                <br>
-                <div id="cr-form">
-                    <label for="cr-input">Tehdit Derecesi:
-                        <select id="cr-input" onchange="InputFunctions.InputCR()"></select>
+        // Boyut seçenekleri
+        const sizeOptions = ['Ufacık boy', 'Küçük boy', 'Orta boy', 'Büyük boy', 'Kocaman boy', 'Devasa boy'];
+
+        // Tür seçenekleri
+        const typeOptions = ['Balçıksı', 'Bitki', 'Dev', 'Ejderha', 'Elemental', 'Fey', 'Garabet', 'Hayvan', 'Hortlak', 'İnsansı', 'Mahlukat', 'Semavi', 'Yapıntı', 'Zebani', 'Özel Tür'];
+
+        // Ahlaki Yönelim seçenekleri (Boş seçeneği eklendi)
+        const alignmentOptions = ['Boş', 'Disiplinli İyi', 'Tarafsız İyi', 'Kaotik İyi', 'Disiplinli Tarafsız', 'Tarafsız', 'Kaotik Tarafsız', 'Disiplinli Kötü', 'Tarafsız Kötü', 'Kaotik Kötü'];
+
+        // Hasar Türleri
+        const damageTypesOptions = ['Asit', 'Ateş', 'Çürüme', 'Delme', 'Ezme', 'Güç', 'Kesme', 'Işıltı', 'Psişik', 'Soğuk', 'Ses', 'Yıldırım', 'Zehir'].sort();
+
+        // Durum Türleri
+        const conditionTypesOptions = ['Bilinçsiz', 'Bitkin', 'Boğulma', 'Cezbedilme', 'Düşme', 'Etkisiz Halde', 'Felç', 'Görünmez', 'Hasta', 'Kavranma', 'Korkma', 'Kör', 'Lanetli', 'Sağır', 'Sersemleme', 'Sessiz', 'Susuz', 'Taşlaşma', 'Yanma', 'Yerde', 'Kısıtlanma', 'Zehirlenme', 'Dönüşüm'].sort();
+
+        // Dil Kategorileri
+        const languageOptions = {
+            normal: ['Buçukluk', 'Ortak İşaret Dili', 'Cüce Dili', 'Devce', 'Elfçe', 'Gnomca', 'Goblince', 'Orkça', 'Ortak Dil'].sort(),
+            exotic: ['Aarakocra Dili', 'Abis Dili', 'Gith dili', 'Gnolca', 'Kadim Dil', 'Ortakaltı', 'Semavi Dili', 'Silvan', 'Zebanice', 'Uzak Lisan'].sort(),
+            special: ['Druid Lisanı', 'Hırsız Argosu'].sort()
+        };
+
+        // Zorluk Derecesi'nden Tecrübe Puanı'na (XP) eşleme ve CR seçenekleri
+        const crToXp = {
+            '0': 10, '1/8': 25, '1/4': 50, '1/2': 100,
+            '1': 200, '2': 450, '3': 700, '4': 1100,
+            '5': 1800, '6': 2300, '7': 2900, '8': 3900,
+            '9': 5000, '10': 5900, '11': 7200, '12': 8400,
+            '13': 10000, '14': 11500, '15': 13000, '16': 15000,
+            '17': 18000, '18': 20000, '19': 22000, '20': 25000,
+            '21': 33000, '22': 41000, '23': 50000, '24': 62000,
+            '25': 75000, '26': 90000, '27': 105000, '28': 120000,
+            '29': 135000, '30': 155000
+        };
+
+        // CR seçeneklerini sıralamak için özel karşılaştırıcı fonksiyon
+        const sortCrOptions = (a, b) => {
+          const parseCr = (crString) => {
+            if (crString.includes('/')) {
+              const parts = crString.split('/');
+              return parseFloat(parts[0]) / parseFloat(parts[1]);
+            }
+            return parseFloat(crString);
+          };
+          return parseCr(a) - parseCr(b);
+        };
+        const crOptions = Object.keys(crToXp).sort(sortCrOptions);
+
+        // Yardımcı fonksiyon: Zorluk Derecesine göre Yeterlilik Bonusu hesaplar
+        const calculateProficiencyBonus = (cr) => {
+          const numCr = parseFloat(cr);
+          if (isNaN(numCr) && cr !== '1/2' && cr !== '1/4' && cr !== '1/8' && cr !== '0') return 2; // Geçersiz CR için varsayılan
+
+          if (cr === '0' || cr === '1/8' || cr === '1/4' || cr === '1/2' || (numCr >= 1 && numCr <= 4)) return 2;
+          if (numCr >= 5 && numCr <= 8) return 3;
+          if (numCr >= 9 && numCr <= 12) return 4;
+          if (numCr >= 13 && numCr <= 16) return 5;
+          if (numCr >= 17 && numCr <= 20) return 6;
+          if (numCr >= 21 && numCr <= 24) return 7;
+          if (numCr >= 25 && numCr <= 28) return 8;
+          if (numCr >= 29) return 9;
+          return 2; // Geri dönüş
+        };
+
+        // Çoklu Seçim Dropdown Bileşeni
+        const MultiSelectDropdown = ({ title, options, selectedValues, onSelectionChange }) => {
+          const [isOpen, setIsOpen] = React.useState(false);
+          const dropdownRef = React.useRef(null); // Ref for dropdown element
+
+          React.useEffect(() => {
+            const handleClickOutside = (event) => {
+              if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsOpen(false);
+              }
+            };
+            document.addEventListener('mousedown', handleClickOutside);
+            return () => {
+              document.removeEventListener('mousedown', handleClickOutside);
+            };
+          }, []); // Empty dependency array means this runs once on mount
+
+          const handleCheckboxChange = (option) => {
+            let newSelectedValues;
+            if (selectedValues.includes(option)) {
+              newSelectedValues = selectedValues.filter((item) => item !== option);
+            } else {
+              newSelectedValues = [...selectedValues, option];
+            }
+            onSelectionChange(newSelectedValues);
+          };
+
+          return (
+            <div className="relative" ref={dropdownRef}>
+              <button
+                type="button"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-left focus:outline-none focus:ring-2 focus:ring-blue-500 flex justify-between items-center"
+                onClick={() => setIsOpen(!isOpen)}
+              >
+                <span>{selectedValues.length > 0 ? selectedValues.join(', ') : title}</span>
+                <span className="ml-2">&#9662;</span> {/* Aşağı ok */}
+              </button>
+              {isOpen && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                  {options.map((option) => (
+                    <label key={option} className="flex items-center px-3 py-2 hover:bg-gray-100 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedValues.includes(option)}
+                        onChange={() => handleCheckboxChange(option)}
+                        className="mr-2"
+                      />
+                      {option}
                     </label>
-                    <br>
-                    <div id="prof-bonus"></div>
-                    <div id="custom-cr">
-                        <label for="custom-cr-input">Tehdit Derecesi: <input id="custom-cr-input" type="text" value="1 (200 TP)"
-                                placeholder="Gizlemek için boş bırak" style="width: 16rem;"></label>
-                        <br>
-                        <label for="custom-prof-input">Yeterlilik Bonusu: <input type="number" id="custom-prof-input"
-                                min="-99" max="99" value="2"></label>
-                    </div>
-                    <br>
+                  ))}
                 </div>
-                <hr>
-                <table>
-                    <tr>
-
-                        <td>
-                            <label for="short-name-input" style="width: 100%; text-align: right;">Kısa
-                                Ad:</label>
-                        </td>
-                        <td>
-                            <input id="short-name-input" type="text" value="" placeholder="None" style="width: 30%;">
-                            <div class="tooltip">?<span class="tooltiptext">Bu, yetenek metnindeki [MON] yerine geçecektir,
-                                    boş bırakılmadığı sürece.</span>
-                            </div>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <label for="plural-name-input" style="text-align: right; width: 100%;">Shortened Plural:</label>
-                        </td>
-                        <td>
-                            <input id="plural-name-input" type="text" value="" placeholder="None" style="width: 30%;">
-                            <div class="tooltip">?<span class="tooltiptext">This will replace [MONS] in ability
-                                    text, unless left blank.</span>
-                            </div>
-                        </td>
-                        </label>
-                    </tr>
-                </table>
-                <br>
-                <div>
-                    <label for="is-legendary-input"><b>Efsanevi Varlık:</b> <input type="checkbox"
-                            id="is-legendary-input" onclick="FormFunctions.ShowHideLegendaryCreature()"></label>
-                </div>
-                <div id="legendary-actions-form">
-                    <br>
-                    <label for="is-mythic-input"><b>Mitik:</b> <input type="checkbox" id="is-mythic-input"
-                            onclick="FormFunctions.ShowHideMythicCreature()"></label>
-                    <label for="has-lair-input"><b>İn:</b> <input type="checkbox" id="has-lair-input"
-                            onclick="FormFunctions.ShowHideLair()"></label>
-                    <label for="has-regional-input"><b>Bölge:</b> <input type="checkbox" id="has-regional-input"
-                            onclick="FormFunctions.ShowHideRegional()"></label>
-                    <br><br>
-                    <b>Efsanevi Aksiyon Açıklaması:</b>
-                    <div><label for="legendaries-descsection-input" style="width: 100%"><textarea
-                                id="legendaries-descsection-input" rows="4"></textarea></label></div>
-                    <div><button type="button" onclick="InputFunctions.LegendaryDescriptionDefaultInput()">Varsayılana
-                            Sıfırla</button></div>
-                </div>
-                <div id="mythic-actions-form">
-                    <br>
-                    <b>Mitik Aksiyon Açıklaması:</b>
-                    <div><label for="mythic-descsection-input" style="width: 100%"><textarea
-                                id="mythic-descsection-input" rows="4"></textarea></label></div>
-                    <div><button type="button" onclick="InputFunctions.MythicDescriptionDefaultInput()">Varsayılana
-                            Sıfırla</button></div>
-                </div>
-                <div id="lair-actions-form">
-                    <br>
-                    <b>İn Aksiyonu Açıklaması:</b>
-                    <div><label for="lair-descsection-input" style="width: 100%"><textarea id="lair-descsection-input"
-                                rows="4"></textarea></label></div>
-                    <b>İn Aksiyonu Sonlanma Açıklaması:</b>
-                    <div><label for="lair-end-descsection-input" style="width: 100%"><textarea
-                                id="lair-end-descsection-input" rows="4"></textarea></label></div>
-                    <div><button type="button" onclick="InputFunctions.LairDescriptionDefaultInput()">Varsayılana
-                            Sıfırla</button></div>
-                </div>
-                <div id="regional-actions-form">
-                    <br>
-                    <b>Bölgesel Etkiler Açıklaması:</b>
-                    <div><label for="regional-descsection-input" style="width: 100%"><textarea
-                                id="regional-descsection-input" rows="4"></textarea></label></div>
-                    <b>Bölgesel Etkiler Sonlanma Açıklaması:</b>
-                    <div><label for="regional-end-descsection-input" style="width: 100%"><textarea
-                                id="regional-end-descsection-input" rows="4"></textarea></label></div>
-                    <div><button type="button" onclick="InputFunctions.RegionalDescriptionDefaultInput()">Varsayılana
-                            Sıfırla</button></div>
-                </div>
-                <br>
-                <b>Kabiliyetler:</b>
-                <div><label for="abilities-name-input" style="width: 100%;">Ad: <input id="abilities-name-input"
-                            type="text" value="" style="margin-right: 40px; width: 30%;"></label></div>
-                <div><textarea id="abilities-desc-input" style="height: 10em;"></textarea></div>
-                <div>
-                    <button type="button" id="add-ability-button"
-                        onclick="InputFunctions.AddAbilityInput('abilities')">Kabiliyet Ekle</button>
-                    <button type="button" id="add-action-button"
-                        onclick="InputFunctions.AddAbilityInput('actions')">Aksiyon Ekle</button>
-                    <button type="button" id="add-bonus-action-button"
-                        onclick="InputFunctions.AddAbilityInput('bonusActions')">Bonus Aksiyon Ekle</button>
-                    <button type="button" id="add-reaction-button"
-                        onclick="InputFunctions.AddAbilityInput('reactions')">Reaksiyon Ekle</button>
-                    <button type="button" id="add-legendary-button"
-                        onclick="InputFunctions.AddAbilityInput('legendaries')">Efsanevi Aksiyon Ekle</button>
-                    <button type="button" id="add-mythic-button"
-                        onclick="InputFunctions.AddAbilityInput('mythics')">Mitik Aksiyon Ekle</button>
-                    <button type="button" id="add-lair-button"
-                        onclick="InputFunctions.AddAbilityInput('lairs')">İn Aksiyonu Ekle</button>
-                    <button type="button" id="add-regional-button"
-                        onclick="InputFunctions.AddAbilityInput('regionals')">Bölgesel Etki Ekle</button>
-                </div>
-                <div>
-                    <select id="common-ability-input"></select>
-                    <button type="button" id="add-common-ability-button"
-                        onclick="InputFunctions.AddCommonAbilityInput()">Hazır Kabiliyet Kullan</button>
-                </div>
-                <div>
-                    <label for="format-helper-checkbox">Formatlama Yardımını Göster: <input type="checkbox"
-                            id="format-helper-checkbox" onclick="FormFunctions.ShowHideFormatHelper()"></label>
-                </div>
-                <div id="format-helper" style="text-align: left; padding: 0 2rem;">
-                    <br>
-                    <div>İtalik yapmak için _ ve kalın yapmak için ** kullanın. Büyü listelerinde ters girinti için > kullanın.</div>
-                    <br>
-                    <div><b>[MON]</b>: Varlığın adını yazar.</div>
-                    <div><b>[CHA]</b>: Varlığın Karizma etkenini gösterir.</div>
-                    <div><b>[3D6]</b>: 3z6 hesaplar.</div>
-                    <div><b>[STR ATK]</b>: Kuvvete dayalı bir saldırı için varlığın saldırı zarındaki etkeni hesaplar.</div>
-                    <div><b>[DEX 2D8]</b>: Hasar zarı 2z8 olan Çevikliğe dayalı bir saldırı için hasar zarını hesaplar.
-                    </div>
-                    <div><b>[WIS SAVE]</b>: Varlığın bilgeliğine karşı kurtarma ZD'sini hesaplar.</div>
-                    <div><b>[3D6 + 1], [STR ATK - 2], [WIS SAVE + 3]</b>: Etkenlere verilen değerleri ekler.</div>
-                    <br>
-                </div>
-                <div style="text-align: left; min-height: 5rem;">
-                    <div id="abilities-input-section"><b>Kabiliyetler:</b><br>
-                        <ul id="abilities-input-list" class="statblock-list"></ul>
-                    </div>
-                    <div id="actions-input-section"><b>Aksiyonlar:</b><br>
-                        <ul id="actions-input-list" class="statblock-list"></ul>
-                    </div>
-                    <div id="bonusActions-input-section"><b>Bonus Aksiyonlar:</b><br>
-                        <ul id="bonusActions-input-list" class="statblock-list"></ul>
-                    </div>
-                    <div id="reactions-input-section"><b>Reaksiyonlar:</b><br>
-                        <ul id="reactions-input-list" class="statblock-list"></ul>
-                    </div>
-                    <div id="legendaries-input-section"><b>Efsanevi Aksiyonlar:</b><br>
-                        <ul id="legendaries-input-list" class="statblock-list"></ul>
-                    </div>
-                    <div id="mythic-input-section"><b>Mitik Aksiyonlar:</b><br>
-                        <ul id="mythics-input-list" class="statblock-list"></ul>
-                    </div>
-                    <div id="lairs-input-section"><b>İn Aksiyonları:</b><br>
-                        <ul id="lairs-input-list" class="statblock-list"></ul>
-                    </div>
-                    <div id="regionals-input-section"><b>Bölgesel Etkiler:</b><br>
-                        <ul id="regionals-input-list" class="statblock-list"></ul>
-                    </div>
-                </div>
-                <br>
+              )}
             </div>
+          );
+        };
 
-        </div>
-    </div>
+        // Bilgilendirme/Hata Mesaj Kutusu Bileşeni
+        const MessageBox = ({ message, type, onClose }) => {
+          const bgColor = type === 'error' ? 'bg-red-100 border-red-400 text-red-700' : 'bg-blue-100 border-blue-400 text-blue-700';
+          const textColor = type === 'error' ? 'text-red-700' : 'text-blue-700';
+
+          return (
+            <div className={`fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50 p-4`}>
+              <div className={`relative bg-white rounded-lg shadow-xl p-6 border ${bgColor} max-w-sm w-full`}>
+                <p className={`font-semibold text-lg mb-4 ${textColor}`}>{message}</p>
+                <button
+                  onClick={onClose}
+                  className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition-colors duration-200"
+                >
+                  Kapat
+                </button>
+              </div>
+            </div>
+          );
+        };
+
+        // Ana uygulama bileşeni
+        const App = () => {
+          const [monster, setMonster] = React.useState({
+            name: 'Goblin',
+            size: sizeOptions[2], // Orta boy
+            type: typeOptions[9], // İnsansı
+            customType: '',
+            subtype: '',
+            alignment: alignmentOptions[7], // Tarafsız Kötü
+            ac: '15 (Deri Zırh, Kalkan)',
+            hp: '7 (2d6)',
+            speed: '30 fit',
+            str: 10,
+            dex: 14,
+            con: 10,
+            int: 10,
+            wis: 8,
+            cha: 8,
+            cr: '1/4',
+            saves: [], // Kurtarma atışları artık çoklu seçim olacak
+            skills: [{ name: skillDefinitions[0].name, bonus: 0 }], // Varsayılan yeteneği skillDefinitions'tan al
+            damageVulnerabilities: [],
+            damageResistances: [],
+            damageImmunities: [],
+            conditionImmunities: [],
+            senses: {
+              hasgoru: '',
+              karagoru: '',
+              korgoru: '',
+              yerhissi: '',
+              passivePerception: 0, // Otomatik hesaplanacak
+              otherSenses: '',
+            },
+            languages: {
+              normal: [],
+              exotic: [],
+              special: [],
+              custom: '',
+            },
+            abilities: [
+              { name: 'Kurnaz Eylem', description: 'Goblin, her turda bonus eylem olarak koşabilir, geri çekilebilir veya gizlenebilir.' },
+            ],
+            actions: [
+              { name: 'Pala', description: 'Yakın Dövüş Silah Saldırısı: +4 isabetli, 1.5m menzil, bir hedef. İsabet: 5 (1d6 + 2) kesme hasarı.' },
+              { name: 'Kısa Yay', description: 'Menzilli Silah Saldırısı: +4 isabetli, 24/96m menzil, bir hedef. İsabet: 5 (1d6 + 2) delme hasarı.' },
+            ],
+            bonusActions: [],
+            reactions: [],
+            mythicActions: [], // Mitik Aksiyonlar
+            legendaryActions: [],
+          });
+
+          const [proficiencyBonus, setProficiencyBonus] = React.useState(2);
+          const [generatedLore, setGeneratedLore] = React.useState(''); // Oluşturulan hikaye/açıklama
+          const [isLoadingLore, setIsLoadingLore] = React.useState(false); // Hikaye yükleme durumu
+          const [loreError, setLoreError] = React.useState(''); // Hikaye hata mesajı
+          const [isLoadingPng, setIsLoadingPng] = React.useState(false); // PNG yükleme durumu
+          const [pngError, setPngError] = React.useState(''); // PNG hata mesajı
+          const [showFinishedMessage, setShowFinishedMessage] = React.useState(false); // Bitti mesajı görünürlüğü
+          const [finishedMessageContent, setFinishedMessageContent] = React.useState(''); // Bitti mesaj içeriği
+
+          const previewRef = React.useRef(null); // Preview alanına erişim için ref
+
+          // Zorluk Derecesi değiştikçe Yeterlilik Bonusu'nu ve Pasif Tespit'i güncelle
+          React.useEffect(() => {
+            setProficiencyBonus(calculateProficiencyBonus(monster.cr));
+            setMonster(prev => ({
+              ...prev,
+              senses: {
+                ...prev.senses,
+                passivePerception: 10 + calculateModifier(prev.wis) + calculateProficiencyBonus(prev.cr)
+              }
+            }));
+          }, [monster.cr, monster.wis]);
+
+          // Form alanları için genel değişiklik işleyici
+          const handleChange = (e) => {
+            const { name, value } = e.target;
+            setMonster(prev => ({
+              ...prev,
+              [name]: name.match(/^(str|dex|con|int|wis|cha)$/) ? parseInt(value, 10) || 0 : value
+            }));
+          };
+
+          // Nested objelerdeki değişiklikleri işleyici (örn: senses)
+          const handleNestedChange = (parentKey, childKey, value) => {
+            setMonster(prev => ({
+              ...prev,
+              [parentKey]: {
+                ...prev[parentKey],
+                [childKey]: value
+              }
+            }));
+          };
+
+          // Çoklu seçim alanları için değişiklik işleyici
+          const handleMultiSelectChange = (key, selectedOptions) => {
+            setMonster(prev => ({
+              ...prev,
+              [key]: selectedOptions
+            }));
+          };
+
+          // Dil kategorileri için çoklu seçim değişiklik işleyici
+          const handleLanguageSelectChange = (category, selectedOptions) => {
+            setMonster(prev => ({
+              ...prev,
+              languages: {
+                ...prev.languages,
+                [category]: selectedOptions
+              }
+            }));
+          };
+
+          // Dinamik dizi alanları için değişiklik işleyici (Özellikler, Aksiyonlar, vb.)
+          const handleArrayChange = (index, field, value, type) => {
+            setMonster(prev => {
+              const newArray = [...prev[type]];
+              newArray[index] = { ...newArray[index], [field]: value };
+              return { ...prev, [type]: newArray };
+            });
+          };
+
+          // Yetenekler için özel değişiklik işleyici
+          const handleSkillChange = (index, field, value) => {
+            setMonster(prev => {
+              const newSkills = [...prev.skills];
+              newSkills[index] = { ...newSkills[index], [field]: value };
+              return { ...prev, skills: newSkills };
+            });
+          };
+
+          // Dinamik dizi alanlarına yeni öğe ekle
+          const addArrayItem = (type) => {
+            if (type === 'skills') {
+              setMonster(prev => ({
+                ...prev,
+                skills: [...prev.skills, { name: skillDefinitions[0].name, bonus: 0 }] // İlk yeteneği varsayılan olarak al
+              }));
+            } else {
+              setMonster(prev => ({
+                ...prev,
+                [type]: [...prev[type], { name: '', description: '' }]
+              }));
+            }
+          };
+
+          // Dinamik dizi alanlarından öğe kaldır
+          const removeArrayItem = (index, type) => {
+            setMonster(prev => {
+              const newArray = [...prev[type]];
+              newArray.splice(index, 1);
+              return { ...prev, [type]: newArray };
+            });
+          };
+
+          // Gemini API kullanarak canavar hikayesi/açıklaması oluşturma
+          const generateMonsterLore = async () => {
+              // Bu fonksiyon artık doğrudan çağrılmayacak, butonu devre dışı bırakıyoruz.
+              // Ancak yine de hata yönetimi ve loading state'i burada kalabilir,
+              // eğer ileride tekrar aktif hale getirilmek istenirse.
+              setIsLoadingLore(true);
+              setLoreError('');
+              setGeneratedLore(''); 
+              try {
+                  setLoreError('Hikaye oluşturma özelliği şu an için devre dışı bırakıldı. Yakında aktif olacak.');
+              } catch (error) {
+                  setLoreError('Bir hata oluştu.');
+              } finally {
+                  setIsLoadingLore(false);
+              }
+          };
+
+          // Varlık Kağıdını Kaydet
+          const handleSaveMonster = () => {
+              try {
+                  const monsterData = JSON.stringify(monster, null, 2); // 2 boşluklu formatta JSON
+                  const blob = new Blob([monsterData], { type: 'application/json' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `${monster.name.toLowerCase().replace(/\s/g, '-') || 'varlik'}.monster`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+                  setFinishedMessageContent(`Varlık kağıdı "${a.download}" olarak başarıyla kaydedildi.`);
+                  setShowFinishedMessage(true);
+              } catch (error) {
+                  setLoreError(`Varlık kağıdı kaydedilirken hata oluştu: ${error.message}`);
+                  setShowFinishedMessage(true);
+              }
+          };
+
+          // Varlık Kağıdını Yükle
+          const handleLoadMonster = (event) => {
+              const file = event.target.files[0];
+              if (!file) {
+                  return;
+              }
+              if (!file.name.endsWith('.monster')) {
+                  setLoreError('Lütfen ".monster" uzantılı bir dosya seçin.');
+                  setShowFinishedMessage(true);
+                  return;
+              }
+
+              const reader = new FileReader();
+              reader.onload = (e) => {
+                  try {
+                      const loadedMonster = JSON.parse(e.target.result);
+                      // Yüklenen verinin beklenen yapıda olup olmadığını kontrol etmek iyi bir fikir
+                      if (loadedMonster.name && loadedMonster.size && loadedMonster.type && loadedMonster.str !== undefined) {
+                           setMonster({
+                              ...monster, // Mevcut varsayılanları koru
+                              ...loadedMonster,
+                              skills: loadedMonster.skills || [],
+                              abilities: loadedMonster.abilities || [],
+                              actions: loadedMonster.actions || [],
+                              bonusActions: loadedMonster.bonusActions || [],
+                              reactions: loadedMonster.reactions || [],
+                              legendaryActions: loadedMonster.legendaryActions || [],
+                              mythicActions: loadedMonster.mythicActions || [], // Mitik aksiyonlar da eklendi
+                              damageVulnerabilities: loadedMonster.damageVulnerabilities || [],
+                              damageResistances: loadedMonster.damageResistances || [],
+                              damageImmunities: loadedMonster.damageImmunities || [],
+                              conditionImmunities: loadedMonster.conditionImmunities || [],
+                              languages: loadedMonster.languages || { normal: [], exotic: [], special: [], custom: '' },
+                              senses: loadedMonster.senses || {hasgoru: '', karagoru: '', korgoru: '', yerhissi: '', passivePerception: 0, otherSenses: ''},
+                              saves: loadedMonster.saves || [],
+                          });
+                          setFinishedMessageContent(`Varlık kağıdı "${file.name}" başarıyla yüklendi.`);
+                          setShowFinishedMessage(true);
+                      } else {
+                          setLoreError('Yüklenen dosya geçerli bir varlık kağıdı formatında değil.');
+                          setShowFinishedMessage(true);
+                      }
+                  } catch (error) {
+                      setLoreError(`Dosya okunurken veya ayrıştırılırken hata oluştu: ${error.message}`);
+                      setShowFinishedMessage(true);
+                  }
+              };
+              reader.readAsText(file);
+          };
+
+          // Karakter Kağıdını PNG Olarak Kaydet
+          const handleExportPng = async () => {
+              if (!previewRef.current) {
+                  setPngError('Önizleme alanı bulunamadı.');
+                  return;
+              }
+
+              setIsLoadingPng(true);
+              setPngError('');
+
+              try {
+                  // html2canvas ile önizleme alanını yakala
+                  const canvas = await html2canvas(previewRef.current, {
+                      scale: 2, // Daha yüksek çözünürlük için ölçek
+                      useCORS: true, // Eğer harici kaynaklar varsa gerekli olabilir
+                      logging: false, // Konsol çıktısını azalt
+                  });
+
+                  // Canvas'ı PNG veri URL'sine dönüştür
+                  const imageDataUrl = canvas.toDataURL('image/png');
+
+                  // PNG dosyasını indirmek için sahte bir bağlantı oluştur
+                  const a = document.createElement('a');
+                  a.href = imageDataUrl;
+                  a.download = `${monster.name.toLowerCase().replace(/\s/g, '-') || 'varlik-kagit'}.png`;
+                  document.body.appendChild(a); // Bağlantıyı DOM'a ekle (indirme tetiklemek için)
+                  a.click(); // İndirmeyi tetikle
+                  document.body.removeChild(a); // Bağlantıyı DOM'dan kaldır
+
+                  setFinishedMessageContent('Varlık kağıdı PNG olarak başarıyla dışa aktarıldı!');
+                  setShowFinishedMessage(true);
+
+              } catch (error) {
+                  console.error("PNG dışa aktarma hatası:", error);
+                  setPngError(`PNG dışa aktarılırken bir hata oluştu: ${error.message}. Tarayıcı izinlerini veya içeriği kontrol edin.`);
+                  setShowFinishedMessage(true);
+              } finally {
+                  setIsLoadingPng(false);
+              }
+          };
+
+
+          // Canavar bloğu bölüm başlığı bileşeni
+          const MonsterBlockSection = ({ title, children }) => (
+            <div className="border-b border-gray-400 pb-2 mb-2">
+              <h3 className="font-bold text-lg text-red-700 font-serif">{title}</h3>
+              {children}
+            </div>
+          );
+
+          return (
+            <div className="min-h-screen bg-gray-100 p-4 font-inter">
+              <h1 className="text-4xl font-bold text-center mb-6 text-gray-800">Varlık Karakteri Oluşturma</h1>
+
+              {/* Yeni butonlar */}
+              <div className="flex flex-wrap justify-center gap-4 mb-8">
+                  <button
+                      onClick={handleSaveMonster}
+                      className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition-colors duration-200"
+                  >
+                      Varlık Kağıdını Kaydet (.monster)
+                  </button>
+                  <label className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md transition-colors duration-200 cursor-pointer">
+                      Varlık Kağıdını Yükle (.monster)
+                      <input type="file" accept=".monster" className="hidden" onChange={handleLoadMonster} />
+                  </label>
+                  <button
+                      onClick={handleExportPng}
+                      disabled={isLoadingPng}
+                      className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-md transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                      {isLoadingPng ? (
+                          <>
+                              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              PNG Oluşturuluyor...
+                          </>
+                      ) : (
+                          'Karakter Kağıdını PNG Olarak Kaydet'
+                      )}
+                  </button>
+              </div>
+
+
+              <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
+                {/* Giriş Formu */}
+                <div className="bg-white p-6 rounded-lg shadow-xl lg:w-1/2 overflow-auto max-h-[90vh]">
+                  <h2 className="text-2xl font-semibold mb-4 text-gray-700">Varlık Detayları</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* İsim */}
+                    <div className="mb-2">
+                      <label htmlFor="name" className="block text-sm font-medium text-gray-600 mb-1">İsim:</label>
+                      <input type="text" id="name" name="name" value={monster.name} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+
+                    {/* Boyut */}
+                    <div className="mb-2">
+                      <label htmlFor="size" className="block text-sm font-medium text-gray-600 mb-1">Boyut:</label>
+                      <select id="size" name="size" value={monster.size} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        {sizeOptions.map(option => <option key={option} value={option}>{option}</option>)}
+                      </select>
+                    </div>
+
+                    {/* Tür */}
+                    <div className="mb-2">
+                      <label htmlFor="type" className="block text-sm font-medium text-gray-600 mb-1">Tür:</label>
+                      <select id="type" name="type" value={monster.type} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        {typeOptions.map(option => <option key={option} value={option}>{option}</option>)}
+                      </select>
+                    </div>
+                    {monster.type === 'Özel Tür' && (
+                      <div className="mb-2">
+                        <label htmlFor="customType" className="block text-sm font-medium text-gray-600 mb-1">Özel Tür:</label>
+                        <input type="text" id="customType" name="customType" value={monster.customType} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                      </div>
+                    )}
+                    <div className="mb-2">
+                      <label htmlFor="subtype" className="block text-sm font-medium text-gray-600 mb-1">Alt Tür:</label>
+                      <input type="text" id="subtype" name="subtype" value={monster.subtype} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Örn: goblinoid" />
+                    </div>
+
+                    {/* Ahlaki Yönelim */}
+                    <div className="mb-2">
+                      <label htmlFor="alignment" className="block text-sm font-medium text-gray-600 mb-1">Ahlaki Yönelim:</label>
+                      <select id="alignment" name="alignment" value={monster.alignment} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        {alignmentOptions.map(option => <option key={option} value={option}>{option}</option>)}
+                      </select>
+                    </div>
+
+                    {/* Zırh Sınıfı */}
+                    <div className="mb-2">
+                      <label htmlFor="ac" className="block text-sm font-medium text-gray-600 mb-1">Zırh Sınıfı:</label>
+                      <input type="text" id="ac" name="ac" value={monster.ac} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+
+                    {/* Sağlık Puanı */}
+                    <div className="mb-2">
+                      <label htmlFor="hp" className="block text-sm font-medium text-gray-600 mb-1">Sağlık Puanı:</label>
+                      <input type="text" id="hp" name="hp" value={monster.hp} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    </div>
+
+                    {/* Hız */}
+                    <div className="mb-2">
+                      <label htmlFor="speed" className="block text-sm font-medium text-gray-600 mb-1">Hız (fit):</label>
+                      <input type="text" id="speed" name="speed" value={monster.speed} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Örn: 30 fit, tırmanma 20 fit" />
+                    </div>
+
+                    {/* Kabiliyetler */}
+                    <div className="md:col-span-2 grid grid-cols-3 gap-4 border p-3 rounded-md mt-4">
+                      <h3 className="col-span-3 text-lg font-semibold text-gray-700 mb-2">Kabiliyetler</h3>
+                      {['str', 'dex', 'con', 'int', 'wis', 'cha'].map(stat => (
+                        <div key={stat} className="mb-2">
+                          <label htmlFor={stat} className="block text-sm font-medium text-gray-600 mb-1">
+                            {stat === 'str' ? 'Kuvvet (KUV)' :
+                             stat === 'dex' ? 'Çeviklik (ÇEV)' :
+                             stat === 'con' ? 'Dayanıklılık (DAY)' :
+                             stat === 'int' ? 'Zeka (ZEK)' :
+                             stat === 'wis' ? 'Bilgelik (BİL)' :
+                             'Karizma (KAR)'}:
+                          </label>
+                          <input
+                            type="number"
+                            id={stat}
+                            name={stat}
+                            value={monster[stat]}
+                            onChange={handleChange}
+                            min="1"
+                            max="30"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Tehdit Derecesi */}
+                    <div className="mb-2">
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Tehdit Derecesi:</label>
+                      <select id="cr" name="cr" value={monster.cr} onChange={handleChange} className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        {crOptions.map(option => (
+                          <option key={option} value={option}>
+                            {option} ({crToXp[option]} XP)
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Kurtarma Atışları */}
+                    <div className="mb-2">
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Kurtarma Atışları:</label>
+                      <MultiSelectDropdown
+                        title="Seç..."
+                        options={['Kuvvet', 'Çeviklik', 'Dayanıklılık', 'Zeka', 'Bilgelik', 'Karizma']}
+                        selectedValues={monster.saves}
+                        onSelectionChange={(values) => handleMultiSelectChange('saves', values)}
+                      />
+                    </div>
+
+                    {/* Hasar Hassasiyetleri */}
+                    <div className="mb-2">
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Hasar Savunmasızlıkları:</label>
+                      <MultiSelectDropdown
+                        title="Seç..."
+                        options={damageTypesOptions}
+                        selectedValues={monster.damageVulnerabilities}
+                        onSelectionChange={(values) => handleMultiSelectChange('damageVulnerabilities', values)}
+                      />
+                    </div>
+
+                    {/* Hasar Dirençleri */}
+                    <div className="mb-2">
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Hasar Dirençleri:</label>
+                      <MultiSelectDropdown
+                        title="Seç..."
+                        options={damageTypesOptions}
+                        selectedValues={monster.damageResistances}
+                        onSelectionChange={(values) => handleMultiSelectChange('damageResistances', values)}
+                      />
+                    </div>
+
+                    {/* Hasar Bağışıklıkları */}
+                    <div className="mb-2">
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Hasar Bağışıklıkları:</label>
+                      <MultiSelectDropdown
+                        title="Seç..."
+                        options={damageTypesOptions}
+                        selectedValues={monster.damageImmunities}
+                        onSelectionChange={(values) => handleMultiSelectChange('damageImmunities', values)}
+                      />
+                    </div>
+
+                    {/* Durum Bağışıklıkları */}
+                    <div className="mb-2">
+                      <label className="block text-sm font-medium text-gray-600 mb-1">Durum Bağışıklıkları:</label>
+                      <MultiSelectDropdown
+                        title="Seç..."
+                        options={conditionTypesOptions}
+                        selectedValues={monster.conditionImmunities}
+                        onSelectionChange={(values) => handleMultiSelectChange('conditionImmunities', values)}
+                      />
+                    </div>
+
+                    {/* Algılar */}
+                    <div className="md:col-span-2 border p-3 rounded-md mt-4">
+                      <h3 className="text-lg font-semibold text-gray-700 mb-2">Algılar</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label htmlFor="hasgoru" className="block text-sm font-medium text-gray-600 mb-1">Hasgörü (fit):</label>
+                          <input type="text" id="hasgoru" name="hasgoru" value={monster.senses.hasgoru} onChange={(e) => handleNestedChange('senses', 'hasgoru', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                        </div>
+                        <div>
+                          <label htmlFor="karagoru" className="block text-sm font-medium text-gray-600 mb-1">Karagörü (fit):</label>
+                          <input type="text" id="karagoru" name="karagoru" value={monster.senses.karagoru} onChange={(e) => handleNestedChange('senses', 'karagoru', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                        </div>
+                        <div>
+                          <label htmlFor="korgoru" className="block text-sm font-medium text-gray-600 mb-1">Körgörü (fit):</label>
+                          <input type="text" id="korgoru" name="korgoru" value={monster.senses.korgoru} onChange={(e) => handleNestedChange('senses', 'korgoru', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                        </div>
+                        <div>
+                          <label htmlFor="yerhissi" className="block text-sm font-medium text-gray-600 mb-1">Yerhissi (fit):</label>
+                          <input type="text" id="yerhissi" name="yerhissi" value={monster.senses.yerhissi} onChange={(e) => handleNestedChange('senses', 'yerhissi', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                        </div>
+                      </div>
+                      <div className="mt-4">
+                        <label htmlFor="otherSenses" className="block text-sm font-medium text-gray-600 mb-1">Diğer Duyular:</label>
+                        <input type="text" id="otherSenses" name="otherSenses" value={monster.senses.otherSenses} onChange={(e) => handleNestedChange('senses', 'otherSenses', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                      </div>
+                    </div>
+
+                    {/* Diller */}
+                    <div className="md:col-span-2 border p-3 rounded-md mt-4">
+                      <h3 className="text-lg font-semibold text-gray-700 mb-2">Diller</h3>
+                      <div className="mb-2">
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Normal Diller:</label>
+                        <MultiSelectDropdown
+                          title="Seç..."
+                          options={languageOptions.normal}
+                          selectedValues={monster.languages.normal}
+                          onSelectionChange={(values) => handleLanguageSelectChange('normal', values)}
+                        />
+                      </div>
+                      <div className="mb-2">
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Farklı Diller:</label>
+                        <MultiSelectDropdown
+                          title="Seç..."
+                          options={languageOptions.exotic}
+                          selectedValues={monster.languages.exotic}
+                          onSelectionChange={(values) => handleLanguageSelectChange('exotic', values)}
+                        />
+                      </div>
+                      <div className="mb-2">
+                        <label className="block text-sm font-medium text-gray-600 mb-1">Özel Diller:</label>
+                        <MultiSelectDropdown
+                          title="Seç..."
+                          options={languageOptions.special}
+                          selectedValues={monster.languages.special}
+                          onSelectionChange={(values) => handleLanguageSelectChange('special', values)}
+                        />
+                      </div>
+                      <div className="mt-2">
+                        <label htmlFor="customLanguages" className="block text-sm font-medium text-gray-600 mb-1">Diğer Diller:</label>
+                        <input type="text" id="customLanguages" name="customLanguages" value={monster.languages.custom} onChange={(e) => handleNestedChange('languages', 'custom', e.target.value)} className="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                      </div>
+                    </div>
+
+                  </div>
+                  {/* Yetenekler */}
+                  <h3 className="text-xl font-semibold mt-6 mb-3 text-gray-700">Yetenekler</h3>
+                  {monster.skills.map((skill, index) => {
+                    const associatedAbility = skillDefinitions.find(s => s.name === skill.name)?.ability;
+                    const calculatedModifier = associatedAbility ? calculateModifier(monster[associatedAbility]) : 0;
+                    const autoBonus = calculatedModifier + proficiencyBonus;
+
+                    return (
+                      <div key={index} className="bg-gray-50 p-3 rounded-md mb-3 border border-gray-200 flex flex-wrap items-center gap-2">
+                        <select
+                          value={skill.name}
+                          onChange={(e) => handleSkillChange(index, 'name', e.target.value)}
+                          className="px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-400 flex-grow"
+                        >
+                          {skillDefinitions.map(def => (
+                            <option key={def.name} value={def.name}>{def.name}</option> 
+                          ))}
+                        </select>
+                        <div className="flex items-center gap-1">
+                          <span className="text-sm text-gray-600">Oto: {formatModifier(autoBonus)}</span>
+                          <input
+                            type="number"
+                            placeholder="Ek Bonus"
+                            value={skill.bonus || ''}
+                            onChange={(e) => handleSkillChange(index, 'bonus', parseInt(e.target.value, 10) || 0)}
+                            className="w-24 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-400"
+                          />
+                        </div>
+                        <button
+                          onClick={() => removeArrayItem(index, 'skills')}
+                          className="bg-red-500 hover:bg-red-600 text-white text-sm px-3 py-1 rounded-md transition-colors duration-200"
+                        >
+                          Kaldır
+                        </button>
+                      </div>
+                    );
+                  })}
+                  <button
+                    onClick={() => addArrayItem('skills')}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-md transition-colors duration-200 mt-2"
+                  >
+                    Yetenek Ekle
+                  </button>
+
+                  {/* Özellikler (Traits) */}
+                  <h3 className="text-xl font-semibold mt-6 mb-3 text-gray-700">Özellikler</h3>
+                  {monster.abilities.map((ability, index) => (
+                    <div key={index} className="bg-gray-50 p-3 rounded-md mb-3 border border-gray-200">
+                      <input
+                        type="text"
+                        placeholder="Özellik Adı"
+                        value={ability.name}
+                        onChange={(e) => handleArrayChange(index, 'name', e.target.value, 'abilities')}
+                        className="w-full px-2 py-1 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-400"
+                      />
+                      <textarea
+                        placeholder="Açıklama"
+                        value={ability.description}
+                        onChange={(e) => handleArrayChange(index, 'description', e.target.value, 'abilities')}
+                        className="w-full px-2 py-1 h-20 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-400"
+                      ></textarea>
+                      <button
+                        onClick={() => removeArrayItem(index, 'abilities')}
+                        className="mt-2 bg-red-500 hover:bg-red-600 text-white text-sm px-3 py-1 rounded-md transition-colors duration-200"
+                      >
+                        Kaldır
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => addArrayItem('abilities')}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-md transition-colors duration-200 mt-2"
+                  >
+                    Özellik Ekle
+                  </button>
+
+                  {/* Aksiyonlar */}
+                  <h3 className="text-xl font-semibold mt-6 mb-3 text-gray-700">Aksiyonlar</h3>
+                  {monster.actions.map((action, index) => (
+                    <div key={index} className="bg-gray-50 p-3 rounded-md mb-3 border border-gray-200">
+                      <input
+                        type="text"
+                        placeholder="Aksiyon Adı"
+                        value={action.name}
+                        onChange={(e) => handleArrayChange(index, 'name', e.target.value, 'actions')}
+                        className="w-full px-2 py-1 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-400"
+                      />
+                      <textarea
+                        placeholder="Açıklama"
+                        value={action.description}
+                        onChange={(e) => handleArrayChange(index, 'description', e.target.value, 'actions')}
+                        className="w-full px-2 py-1 h-20 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-400"
+                      ></textarea>
+                      <button
+                        onClick={() => removeArrayItem(index, 'actions')}
+                        className="mt-2 bg-red-500 hover:bg-red-600 text-white text-sm px-3 py-1 rounded-md transition-colors duration-200"
+                      >
+                        Kaldır
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => addArrayItem('actions')}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-md transition-colors duration-200 mt-2"
+                  >
+                    Aksiyon Ekle
+                  </button>
+
+                  {/* Bonus Aksiyonlar */}
+                  <h3 className="text-xl font-semibold mt-6 mb-3 text-gray-700">Bonus Aksiyonlar</h3>
+                  {monster.bonusActions.map((action, index) => (
+                    <div key={index} className="bg-gray-50 p-3 rounded-md mb-3 border border-gray-200">
+                      <input
+                        type="text"
+                        placeholder="Bonus Aksiyon Adı"
+                        value={action.name}
+                        onChange={(e) => handleArrayChange(index, 'name', e.target.value, 'bonusActions')}
+                        className="w-full px-2 py-1 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-400"
+                      />
+                      <textarea
+                        placeholder="Açıklama"
+                        value={action.description}
+                        onChange={(e) => handleArrayChange(index, 'description', e.target.value, 'bonusActions')}
+                        className="w-full px-2 py-1 h-20 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-400"
+                      ></textarea>
+                      <button
+                        onClick={() => removeArrayItem(index, 'bonusActions')}
+                        className="mt-2 bg-red-500 hover:bg-red-600 text-white text-sm px-3 py-1 rounded-md transition-colors duration-200"
+                      >
+                        Kaldır
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => addArrayItem('bonusActions')}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-md transition-colors duration-200 mt-2"
+                  >
+                    Bonus Aksiyon Ekle
+                  </button>
+
+                  {/* Reaksiyonlar */}
+                  <h3 className="text-xl font-semibold mt-6 mb-3 text-gray-700">Reaksiyonlar</h3>
+                  {monster.reactions.map((action, index) => (
+                    <div key={index} className="bg-gray-50 p-3 rounded-md mb-3 border border-gray-200">
+                      <input
+                        type="text"
+                        placeholder="Reaksiyon Adı"
+                        value={action.name}
+                        onChange={(e) => handleArrayChange(index, 'name', e.target.value, 'reactions')}
+                        className="w-full px-2 py-1 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-400"
+                      />
+                      <textarea
+                        placeholder="Açıklama"
+                        value={action.description}
+                        onChange={(e) => handleArrayChange(index, 'description', e.target.value, 'reactions')}
+                        className="w-full px-2 py-1 h-20 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-400"
+                      ></textarea>
+                      <button
+                        onClick={() => removeArrayItem(index, 'reactions')}
+                        className="mt-2 bg-red-500 hover:bg-red-600 text-white text-sm px-3 py-1 rounded-md transition-colors duration-200"
+                      >
+                        Kaldır
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => addArrayItem('reactions')}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-md transition-colors duration-200 mt-2"
+                  >
+                    Reaksiyon Ekle
+                  </button>
+
+                  {/* Efsanevi Aksiyonlar (İsteğe Bağlı) */}
+                  <h3 className="text-xl font-semibold mt-6 mb-3 text-gray-700">Efsanevi Aksiyonlar</h3>
+                  {monster.legendaryActions.map((action, index) => (
+                    <div key={index} className="bg-gray-50 p-3 rounded-md mb-3 border border-gray-200">
+                      <input
+                        type="text"
+                        placeholder="Efsanevi Aksiyon Adı"
+                        value={action.name}
+                        onChange={(e) => handleArrayChange(index, 'name', e.target.value, 'legendaryActions')}
+                        className="w-full px-2 py-1 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-400"
+                      />
+                      <textarea
+                        placeholder="Açıklama"
+                        value={action.description}
+                        onChange={(e) => handleArrayChange(index, 'description', e.target.value, 'legendaryActions')}
+                        className="w-full px-2 py-1 h-20 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-400"
+                      ></textarea>
+                      <button
+                        onClick={() => removeArrayItem(index, 'legendaryActions')}
+                        className="mt-2 bg-red-500 hover:bg-red-600 text-white text-sm px-3 py-1 rounded-md transition-colors duration-200"
+                      >
+                        Kaldır
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => addArrayItem('legendaryActions')}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-md transition-colors duration-200 mt-2"
+                  >
+                    Efsanevi Aksiyon Ekle
+                  </button>
+
+                  {/* Yeni: Mitik Aksiyonlar */}
+                  <h3 className="text-xl font-semibold mt-6 mb-3 text-gray-700">Mitik Aksiyonlar</h3>
+                  {monster.mythicActions.map((action, index) => (
+                    <div key={index} className="bg-gray-50 p-3 rounded-md mb-3 border border-gray-200">
+                      <input
+                        type="text"
+                        placeholder="Mitik Aksiyon Adı"
+                        value={action.name}
+                        onChange={(e) => handleArrayChange(index, 'name', e.target.value, 'mythicActions')}
+                        className="w-full px-2 py-1 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-400"
+                      />
+                      <textarea
+                        placeholder="Açıklama"
+                        value={action.description}
+                        onChange={(e) => handleArrayChange(index, 'description', e.target.value, 'mythicActions')}
+                        className="w-full px-2 py-1 h-20 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-400"
+                      ></textarea>
+                      <button
+                        onClick={() => removeArrayItem(index, 'mythicActions')}
+                        className="mt-2 bg-red-500 hover:bg-red-600 text-white text-sm px-3 py-1 rounded-md transition-colors duration-200"
+                      >
+                        Kaldır
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    onClick={() => addArrayItem('mythicActions')}
+                    className="w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-md transition-colors duration-200 mt-2"
+                  >
+                    Mitik Aksiyon Ekle
+                  </button>
+                </div>
+
+                {/* Varlık Bloğu Önizlemesi */}
+                <div ref={previewRef} className="bg-white p-6 rounded-lg shadow-xl lg:w-1/2 overflow-auto max-h-[90vh]">
+                  <h2 className="text-3xl font-bold font-serif text-gray-800 border-b-2 border-red-700 pb-2 mb-4">
+                    {monster.name}
+                  </h2>
+                  <p className="text-sm italic mb-4">
+                    {monster.size} {monster.type === 'Özel Tür' ? monster.customType : monster.type}
+                    {monster.subtype && ` (${monster.subtype})`}, {monster.alignment === 'Boş' ? '' : monster.alignment}
+                  </p>
+
+                  <MonsterBlockSection title="Zırh Sınıfı">
+                    <p>{monster.ac}</p>
+                  </MonsterBlockSection>
+                  <MonsterBlockSection title="Sağlık Puanı">
+                    <p>{monster.hp}</p>
+                  </MonsterBlockSection>
+                  <MonsterBlockSection title="Hız">
+                    <p>{monster.speed}</p>
+                  </MonsterBlockSection>
+
+                  {/* Kabiliyetler */}
+                  <MonsterBlockSection title="Kabiliyetler">
+                    <div className="grid grid-cols-3 gap-2 text-center text-sm">
+                      <div><strong className="font-bold">KUV</strong><br/>{monster.str} ({formatModifier(calculateModifier(monster.str))})</div>
+                      <div><strong className="font-bold">ÇEV</strong><br/>{monster.dex} ({formatModifier(calculateModifier(monster.dex))})</div>
+                      <div><strong className="font-bold">DAY</strong><br/>{monster.con} ({formatModifier(calculateModifier(monster.con))})</div>
+                      <div><strong className="font-bold">ZEK</strong><br/>{monster.int} ({formatModifier(calculateModifier(monster.int))})</div>
+                      <div><strong className="font-bold">BİL</strong><br/>{monster.wis} ({formatModifier(calculateModifier(monster.wis))})</div>
+                      <div><strong className="font-bold">KAR</strong><br/>{monster.cha} ({formatModifier(calculateModifier(monster.cha))})</div>
+                    </div>
+                  </MonsterBlockSection>
+
+                  {monster.saves.length > 0 && (
+                    <MonsterBlockSection title="Kurtarma Atışları">
+                      <p>
+                        {monster.saves.map(save => {
+                          let abilityScore;
+                          switch (save) {
+                            case 'Kuvvet': abilityScore = monster.str; break;
+                            case 'Çeviklik': abilityScore = monster.dex; break;
+                            case 'Dayanıklılık': abilityScore = monster.con; break;
+                            case 'Zeka': abilityScore = monster.int; break;
+                            case 'Bilgelik': abilityScore = monster.wis; break;
+                            case 'Karizma': abilityScore = monster.cha; break;
+                            default: abilityScore = 0;
+                          }
+                          return `${save} ${formatModifier(calculateModifier(abilityScore) + proficiencyBonus)}`;
+                        }).join(', ')}
+                      </p>
+                    </MonsterBlockSection>
+                  )}
+                  {monster.skills.length > 0 && (
+                    <MonsterBlockSection title="Yetenekler">
+                      {monster.skills.map((skill) => { 
+                        const associatedAbility = skillDefinitions.find(s => s.name === skill.name)?.ability;
+                        const calculatedModifier = associatedAbility ? calculateModifier(monster[associatedAbility]) : 0;
+                        const totalBonus = calculatedModifier + proficiencyBonus + (skill.bonus || 0);
+                        return (
+                          <p key={skill.name} className="mb-1">
+                            <strong className="font-bold">{skill.name}</strong> {formatModifier(totalBonus)}
+                          </p>
+                        );
+                      })}
+                    </MonsterBlockSection>
+                  )}
+                  {monster.damageVulnerabilities.length > 0 && (
+                    <MonsterBlockSection title="Hasar Savunmasızlıkları">
+                      <p>{monster.damageVulnerabilities.join(', ')}</p>
+                    </MonsterBlockSection>
+                  )}
+                  {monster.damageResistances.length > 0 && (
+                    <MonsterBlockSection title="Hasar Dirençleri">
+                      <p>{monster.damageResistances.join(', ')}</p>
+                    </MonsterBlockSection>
+                  )}
+                  {monster.damageImmunities.length > 0 && (
+                    <MonsterBlockSection title="Hasar Bağışıklıkları">
+                      <p>{monster.damageImmunities.join(', ')}</p>
+                    </MonsterBlockSection>
+                  )}
+                  {monster.conditionImmunities.length > 0 && (
+                    <MonsterBlockSection title="Durum Bağışıklıkları">
+                      <p>{monster.conditionImmunities.join(', ')}</p>
+                    </MonsterBlockSection>
+                  )}
+                  {(monster.senses.hasgoru || monster.senses.karagoru || monster.senses.korgoru || monster.senses.yerhissi || monster.senses.otherSenses) && (
+                    <MonsterBlockSection title="Algılar">
+                      <p>
+                        {[
+                          monster.senses.hasgoru ? `Hasgörü ${monster.senses.hasgoru} fit` : '',
+                          monster.senses.karagoru ? `Karagörü ${monster.senses.karagoru} fit` : '',
+                          monster.senses.korgoru ? `Körgörü ${monster.senses.korgoru} fit` : '',
+                          monster.senses.yerhissi ? `Yerhissi ${monster.senses.yerhissi} fit` : '',
+                          monster.senses.otherSenses,
+                          `Pasif Tespit ${monster.senses.passivePerception}`, // Label changed to Pasif Tespit
+                        ].filter(Boolean).join(', ')}
+                      </p>
+                    </MonsterBlockSection>
+                  )}
+                  { (monster.languages.normal.length > 0 || monster.languages.exotic.length > 0 || monster.languages.special.length > 0 || monster.languages.custom) && (
+                    <MonsterBlockSection title="Diller">
+                      <p>
+                        {[
+                          ...monster.languages.normal,
+                          ...monster.languages.exotic,
+                          ...monster.languages.special,
+                          monster.languages.custom,
+                        ].filter(Boolean).join(', ')}
+                      </p>
+                    </MonsterBlockSection>
+                  )}
+
+                  <MonsterBlockSection title="Tehdit Derecesi">
+                    <p>
+                      {monster.cr} ({crToXp[monster.cr] ? crToXp[monster.cr] : 'N/A'} XP)
+                    </p>
+                  </MonsterBlockSection>
+                  <MonsterBlockSection title="Yeterlilik Bonusu">
+                    <p>+{proficiencyBonus}</p>
+                  </MonsterBlockSection>
+
+                  {/* Yeni: Oluşturulan Hikaye/Açıklama */}
+                  {generatedLore && (
+                    <MonsterBlockSection title="Hikaye">
+                      <p className="whitespace-pre-wrap">{generatedLore}</p>
+                    </MonsterBlockSection>
+                  )}
+
+                  {/* Özellikler (Traits) */}
+                  {monster.abilities.length > 0 && (
+                    <MonsterBlockSection title="Özellikler">
+                      {monster.abilities.map((ability, index) => (
+                        <p key={index} className="mb-1">
+                          <strong className="font-bold italic">{ability.name}.</strong> {ability.description}
+                        </p>
+                      ))}
+                    </MonsterBlockSection>
+                  )}
+
+                  {/* Aksiyonlar */}
+                  {monster.actions.length > 0 && (
+                    <MonsterBlockSection title="Aksiyonlar">
+                      {monster.actions.map((action, index) => (
+                        <p key={index} className="mb-1">
+                          <strong className="font-bold italic">{action.name}.</strong> {action.description}
+                        </p>
+                      ))}
+                    </MonsterBlockSection>
+                  )}
+
+                  {/* Bonus Aksiyonlar */}
+                  {monster.bonusActions.length > 0 && (
+                    <MonsterBlockSection title="Bonus Aksiyonlar">
+                      {monster.bonusActions.map((action, index) => (
+                        <p key={index} className="mb-1">
+                          <strong className="font-bold italic">{action.name}.</strong> {action.description}
+                        </p>
+                      ))}
+                    </MonsterBlockSection>
+                  )}
+
+                  {/* Reaksiyonlar */}
+                  {monster.reactions.length > 0 && (
+                    <MonsterBlockSection title="Reaksiyonlar">
+                      {monster.reactions.map((action, index) => (
+                        <p key={index} className="mb-1">
+                          <strong className="font-bold italic">{action.name}.</strong> {action.description}
+                        </p>
+                      ))}
+                    </MonsterBlockSection>
+                  )}
+
+                  {/* Efsanevi Aksiyonlar */}
+                  {monster.legendaryActions.length > 0 && (
+                    <MonsterBlockSection title="Efsanevi Aksiyonlar">
+                      <p className="mb-2">Canavarın {monster.name}, {Math.floor(parseFloat(monster.cr.split('/')[0]) / (monster.cr.includes('/') ? parseFloat(monster.cr.split('/')[1]) : 1) / 2)} efsanevi aksiyon hakkına sahiptir.</p>
+                      {monster.legendaryActions.map((action, index) => (
+                        <p key={index} className="mb-1">
+                          <strong className="font-bold italic">{action.name}.</strong> {action.description}
+                        </p>
+                      ))}
+                    </MonsterBlockSection>
+                  )}
+
+                  {/* Mitik Aksiyonlar */}
+                  {monster.mythicActions.length > 0 && (
+                    <MonsterBlockSection title="Mitik Aksiyonlar">
+                      <p className="mb-2">Canavarın Mitik Aksiyonları:</p> {/* Mitik Aksiyonlar için giriş cümlesi */}
+                      {monster.mythicActions.map((action, index) => (
+                        <p key={index} className="mb-1">
+                          <strong className="font-bold italic">{action.name}.</strong> {action.description}
+                        </p>
+                      ))}
+                    </MonsterBlockSection>
+                  )}
+                </div>
+              </div>
+              {/* Hikaye Oluştur butonu sayfanın en altına taşındı ve devre dışı bırakıldı */}
+              <button
+                  onClick={generateMonsterLore}
+                  disabled={true} // Devre dışı bırakıldı
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-md mt-8 transition-colors duration-200 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed text-xl"
+              >
+                  Hikaye Oluştur (Yakında)
+              </button>
+              {loreError && (
+                <p className="text-red-500 text-sm mt-2 text-center">{loreError}</p>
+              )}
+            </div>
+          );
+        };
+
+        // React uygulamasını 'root' div'ine render et (React 18 createRoot API'si ile uyumlu)
+        const container = document.getElementById('root');
+        const root = ReactDOM.createRoot(container);
+        root.render(<App />);
+    </script>
 </body>
-
 </html>
