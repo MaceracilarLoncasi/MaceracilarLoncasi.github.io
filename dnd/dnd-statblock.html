@@ -270,11 +270,11 @@
               custom: '',
             },
             abilities: [
-              { name: 'Kurnaz Eylem', description: 'Goblin, her turda bonus eylem olarak koşabilir, geri çekilebilir veya gizlenebilir.' },
+              { name: 'Çevik Kaçış', description: 'Goblin, her sırasında Bonus Aksiyon olarak Serbest Kal veya Saklan aksiyonunu gerçekleştirebilir.' },
             ],
             actions: [
-              { name: 'Pala', description: 'Yakın Dövüş Silah Saldırısı: +4 isabetli, 1.5m menzil, bir hedef. İsabet: 5 (1d6 + 2) kesme hasarı.' },
-              { name: 'Kısa Yay', description: 'Menzilli Silah Saldırısı: +4 isabetli, 24/96m menzil, bir hedef. İsabet: 5 (1d6 + 2) delme hasarı.' },
+              { name: 'Pala', description: 'Yakın Dövüş Silah Saldırısı: +4 isabetli, 5 fit menzil, bir hedef. Hasar: 5 (1z6 + 2) kesme hasarı.' },
+              { name: 'Kısa Yay', description: 'Menzilli Silah Saldırısı: +4 isabetli, 80/320 fit menzil, bir hedef. Hasar: 5 (1z6 + 2) delme hasarı.' },
             ],
             bonusActions: [],
             reactions: [],
@@ -526,7 +526,7 @@
 
           return (
             <div className="min-h-screen bg-gray-100 p-4 font-inter">
-              <h1 className="text-4xl font-bold text-center mb-6 text-gray-800">Varlık Karakteri Oluşturma</h1>
+              <h1 className="text-4xl font-bold text-center mb-6 text-gray-800">Varlık Kağıdı Oluştur</h1>
 
               {/* Yeni butonlar */}
               <div className="flex flex-wrap justify-center gap-4 mb-8">
@@ -534,10 +534,10 @@
                       onClick={handleSaveMonster}
                       className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-md transition-colors duration-200"
                   >
-                      Varlık Kağıdını Kaydet (.monster)
+                      Varlık Kağıdını Kaydet
                   </button>
                   <label className="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md transition-colors duration-200 cursor-pointer">
-                      Varlık Kağıdını Yükle (.monster)
+                      Varlık Kağıdını Yükle
                       <input type="file" accept=".monster" className="hidden" onChange={handleLoadMonster} />
                   </label>
                   <button
@@ -554,7 +554,7 @@
                               PNG Oluşturuluyor...
                           </>
                       ) : (
-                          'Karakter Kağıdını PNG Olarak Kaydet'
+                          'Varlık Kağıdını PNG Olarak Kaydet'
                       )}
                   </button>
               </div>
