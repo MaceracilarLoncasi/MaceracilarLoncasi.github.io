@@ -43,67 +43,67 @@ class NavBar {
 		};
 		document.getElementById("navigation").prepend(btnShowHide);
 
-		this._addElement_li(null, "index.html", "Home", {isRoot: true});
+		this._addElement_li(null, "index.html", "Ana Sayfa", {isRoot: true});
 
 		this._addElement_dropdown(null, NavBar._CAT_RULES);
-		this._addElement_li(NavBar._CAT_RULES, "variantrules.html", "Rules Glossary");
-		this._addElement_li(NavBar._CAT_RULES, "tables.html", "Tables");
+		this._addElement_li(NavBar._CAT_RULES, "variantrules.html", "Kurallar Sözlüğü");
+		this._addElement_li(NavBar._CAT_RULES, "tables.html", "Tablolar");
 		this._addElement_divider(NavBar._CAT_RULES);
 		this._addElement_dropdown(NavBar._CAT_RULES, NavBar._CAT_BOOKS, {isSide: true, page: "books.html"});
-		this._addElement_li(NavBar._CAT_BOOKS, "books.html", "View All/Homebrew");
+		this._addElement_li(NavBar._CAT_BOOKS, "books.html", "Hepsini Görüntüle/Özgün İçerik");
 		this._addElement_divider(NavBar._CAT_RULES);
-		this._addElement_li(NavBar._CAT_RULES, "quickreference.html", "Quick Reference (2014)");
+		this._addElement_li(NavBar._CAT_RULES, "quickreference.html", "Hızlı Referans (2014)");
 
 		this._addElement_dropdown(null, NavBar._CAT_PLAYER);
-		this._addElement_li(NavBar._CAT_PLAYER, "classes.html", "Classes");
-		this._addElement_li(NavBar._CAT_PLAYER, "backgrounds.html", "Backgrounds");
-		this._addElement_li(NavBar._CAT_PLAYER, "feats.html", "Feats");
-		this._addElement_li(NavBar._CAT_PLAYER, "races.html", "Species");
-		this._addElement_li(NavBar._CAT_PLAYER, "charcreationoptions.html", "Other Character Creation Options");
-		this._addElement_li(NavBar._CAT_PLAYER, "optionalfeatures.html", "Other Options & Features");
+		this._addElement_li(NavBar._CAT_PLAYER, "classes.html", "Sınıflar");
+		this._addElement_li(NavBar._CAT_PLAYER, "backgrounds.html", "Geçmişler");
+		this._addElement_li(NavBar._CAT_PLAYER, "feats.html", "Hünerler");
+		this._addElement_li(NavBar._CAT_PLAYER, "races.html", "Türler");
+		this._addElement_li(NavBar._CAT_PLAYER, "charcreationoptions.html", "Diğer Karakter Oluşturma Seçenekleri");
+		this._addElement_li(NavBar._CAT_PLAYER, "optionalfeatures.html", "Diğer Özellikler ve Seçenekler");
 		this._addElement_divider(NavBar._CAT_PLAYER);
-		this._addElement_li(NavBar._CAT_PLAYER, "statgen.html", "Stat Generator");
+		this._addElement_li(NavBar._CAT_PLAYER, "statgen.html", "Varlık Oluşturucu");
 		this._addElement_divider(NavBar._CAT_PLAYER);
-		this._addElement_li(NavBar._CAT_PLAYER, "lifegen.html", "This Is Your Life");
-		this._addElement_li(NavBar._CAT_PLAYER, "names.html", "Names");
+		this._addElement_li(NavBar._CAT_PLAYER, "lifegen.html", "Bu Senin Hayatın");
+		this._addElement_li(NavBar._CAT_PLAYER, "names.html", "İsimler");
 
 		this._addElement_dropdown(null, NavBar._CAT_DUNGEON_MASTER);
-		this._addElement_li(NavBar._CAT_DUNGEON_MASTER, "dmscreen.html", "DM Screen");
+		this._addElement_li(NavBar._CAT_DUNGEON_MASTER, "dmscreen.html", "ZE Ekranı");
 		this._addElement_divider(NavBar._CAT_DUNGEON_MASTER);
 		this._addElement_dropdown(NavBar._CAT_DUNGEON_MASTER, NavBar._CAT_ADVENTURES, {isSide: true, page: "adventures.html"});
-		this._addElement_li(NavBar._CAT_ADVENTURES, "adventures.html", "View All/Homebrew");
-		this._addElement_li(NavBar._CAT_DUNGEON_MASTER, "cultsboons.html", "Cults & Supernatural Boons");
-		this._addElement_li(NavBar._CAT_DUNGEON_MASTER, "objects.html", "Objects");
-		this._addElement_li(NavBar._CAT_DUNGEON_MASTER, "trapshazards.html", "Traps & Hazards");
+		this._addElement_li(NavBar._CAT_ADVENTURES, "adventures.html", "Hepsini Görüntüle/Özgün İçerik");
+		this._addElement_li(NavBar._CAT_DUNGEON_MASTER, "cultsboons.html", "Kültler & Doğaüstü Nimetler");
+		this._addElement_li(NavBar._CAT_DUNGEON_MASTER, "objects.html", "Nesneler");
+		this._addElement_li(NavBar._CAT_DUNGEON_MASTER, "trapshazards.html", "Tuzaklar ve Tehlikeler");
 		this._addElement_divider(NavBar._CAT_DUNGEON_MASTER);
-		this._addElement_li(NavBar._CAT_DUNGEON_MASTER, "crcalculator.html", "CR Calculator (2014)");
-		this._addElement_li(NavBar._CAT_DUNGEON_MASTER, "encountergen.html", "Encounter Generator");
-		this._addElement_li(NavBar._CAT_DUNGEON_MASTER, "lootgen.html", "Loot Generator");
+		this._addElement_li(NavBar._CAT_DUNGEON_MASTER, "crcalculator.html", "TD Hesaplayıcı (2014)");
+		this._addElement_li(NavBar._CAT_DUNGEON_MASTER, "encountergen.html", "Karşılaşma Oluşturucu");
+		this._addElement_li(NavBar._CAT_DUNGEON_MASTER, "lootgen.html", "Ganimet Üreticisi");
 		this._addElement_divider(NavBar._CAT_DUNGEON_MASTER);
-		this._addElement_li(NavBar._CAT_DUNGEON_MASTER, "maps.html", "Maps");
+		this._addElement_li(NavBar._CAT_DUNGEON_MASTER, "maps.html", "Haritalar");
 
 		this._addElement_dropdown(null, NavBar._CAT_REFERENCES);
-		this._addElement_li(NavBar._CAT_REFERENCES, "actions.html", "Actions");
-		this._addElement_li(NavBar._CAT_REFERENCES, "bastions.html", "Bastions");
-		this._addElement_li(NavBar._CAT_REFERENCES, "bestiary.html", "Bestiary");
-		this._addElement_li(NavBar._CAT_REFERENCES, "conditionsdiseases.html", "Conditions & Diseases");
-		this._addElement_li(NavBar._CAT_REFERENCES, "decks.html", "Decks");
-		this._addElement_li(NavBar._CAT_REFERENCES, "deities.html", "Deities");
-		this._addElement_li(NavBar._CAT_REFERENCES, "items.html", "Items");
-		this._addElement_li(NavBar._CAT_REFERENCES, "languages.html", "Languages");
-		this._addElement_li(NavBar._CAT_REFERENCES, "rewards.html", "Supernatural Gifts & Rewards");
-		this._addElement_li(NavBar._CAT_REFERENCES, "psionics.html", "Psionics");
-		this._addElement_li(NavBar._CAT_REFERENCES, "spells.html", "Spells");
-		this._addElement_li(NavBar._CAT_REFERENCES, "vehicles.html", "Vehicles");
+		this._addElement_li(NavBar._CAT_REFERENCES, "actions.html", "Aksiyonlar");
+		this._addElement_li(NavBar._CAT_REFERENCES, "bastions.html", "Mülkler");
+		this._addElement_li(NavBar._CAT_REFERENCES, "bestiary.html", "Varlıklar");
+		this._addElement_li(NavBar._CAT_REFERENCES, "conditionsdiseases.html", "Durumlar ve Hastalıklar");
+		this._addElement_li(NavBar._CAT_REFERENCES, "decks.html", "Kartlar");
+		this._addElement_li(NavBar._CAT_REFERENCES, "deities.html", "Tanrılar");
+		this._addElement_li(NavBar._CAT_REFERENCES, "items.html", "Eşyalar");
+		this._addElement_li(NavBar._CAT_REFERENCES, "languages.html", "Diller");
+		this._addElement_li(NavBar._CAT_REFERENCES, "rewards.html", "Doğaüstü Hediyeler ve Ödüller");
+		this._addElement_li(NavBar._CAT_REFERENCES, "psionics.html", "Psionikler");
+		this._addElement_li(NavBar._CAT_REFERENCES, "spells.html", "Büyüler");
+		this._addElement_li(NavBar._CAT_REFERENCES, "vehicles.html", "Vasıtalar");
 		this._addElement_divider(NavBar._CAT_REFERENCES);
-		this._addElement_li(NavBar._CAT_REFERENCES, "recipes.html", "Recipes");
+		this._addElement_li(NavBar._CAT_REFERENCES, "recipes.html", "Tarifler");
 
 		this._addElement_dropdown(null, NavBar._CAT_UTILITIES);
-		this._addElement_li(NavBar._CAT_UTILITIES, "search.html", "Search");
+		this._addElement_li(NavBar._CAT_UTILITIES, "search.html", "Ara");
 		this._addElement_divider(NavBar._CAT_UTILITIES);
-		this._addElement_li(NavBar._CAT_UTILITIES, "blocklist.html", "Content Blocklist");
-		this._addElement_li(NavBar._CAT_UTILITIES, "manageprerelease.html", "Prerelease Content Manager");
-		this._addElement_li(NavBar._CAT_UTILITIES, "managebrew.html", "Homebrew Manager");
+		this._addElement_li(NavBar._CAT_UTILITIES, "blocklist.html", "İçerik Engelleme Listesi");
+		this._addElement_li(NavBar._CAT_UTILITIES, "manageprerelease.html", "Ön Sürüm İçerik Yöneticisi");
+		this._addElement_li(NavBar._CAT_UTILITIES, "managebrew.html", "Özgün İçerik Yöneticisi");
 		this._addElement_buttonSplit(
 			NavBar._CAT_UTILITIES,
 			{
@@ -850,15 +850,15 @@ NavBar._ALT_CHILD_PAGES = {
 	"book.html": "books.html",
 	"adventure.html": "adventures.html",
 };
-NavBar._CAT_RULES = "Rules";
-NavBar._CAT_BOOKS = "Books";
-NavBar._CAT_PLAYER = "Player";
-NavBar._CAT_DUNGEON_MASTER = "Dungeon Master";
-NavBar._CAT_ADVENTURES = "Adventures";
-NavBar._CAT_REFERENCES = "References";
-NavBar._CAT_UTILITIES = "Utilities";
-NavBar._CAT_SETTINGS = "Settings";
-NavBar._CAT_CACHE = "Preload Data";
+NavBar._CAT_RULES = "Kurallar";
+NavBar._CAT_BOOKS = "Kitaplar";
+NavBar._CAT_PLAYER = "Oyuncu";
+NavBar._CAT_DUNGEON_MASTER = "Zindan Efendisi";
+NavBar._CAT_ADVENTURES = "Maceralar";
+NavBar._CAT_REFERENCES = "Referanslar";
+NavBar._CAT_UTILITIES = "Faydalı Araçlar";
+NavBar._CAT_SETTINGS = "Ayarlar";
+NavBar._CAT_CACHE = "Ön Yükleme Verileri";
 
 NavBar._navbar = null;
 
