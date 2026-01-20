@@ -1,0 +1,855 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Oyuncu Dışı Karakter Oluşturucu</title>
+  <style>
+    :root{
+      --bg:#efe6d6;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --text:#111827;
+      --line:#e5e7eb;
+      --soft:#f6f7fb;
+      --accent:#111827;
+      --accent2:#0f172a;
+      --badge:#eef2ff;
+      --badgeText:#1f2a5a;
+      --shadow: 0 10px 25px rgba(0,0,0,.08);
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:linear-gradient(180deg, var(--bg), #f4efe6 40%, #f7f7f7);
+    }
+    .wrap{
+      max-width: 1120px;
+      margin: 28px auto 60px;
+      padding: 0 16px;
+    }
+    h1{
+      margin: 0 0 14px;
+      text-align:center;
+      letter-spacing:.5px;
+      font-weight: 800;
+      font-size: 22px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+    .section{
+      padding: 18px;
+    }
+    .two-col{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 900px){
+      .two-col{grid-template-columns: 1fr}
+    }
+    label{
+      display:block;
+      font-size: 12px;
+      color: var(--text);
+      font-weight: 650;
+      margin: 2px 0 6px;
+    }
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap: 8px;
+    }
+    select,input,textarea{
+      width:100%;
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius: 10px;
+      padding: 11px 12px;
+      font-size: 14px;
+      outline:none;
+      transition: border .15s ease, box-shadow .15s ease;
+    }
+    textarea{min-height: 92px; resize: vertical;}
+    select:focus,input:focus,textarea:focus{
+      border-color: #9aa4b2;
+      box-shadow: 0 0 0 4px rgba(17,24,39,.06);
+    }
+    .btn-row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 10px;
+    }
+    @media (max-width: 900px){
+      .btn-row{grid-template-columns: 1fr}
+    }
+    button{
+      border: 1px solid transparent;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-weight: 750;
+      cursor:pointer;
+      transition: transform .05s ease, opacity .15s ease, box-shadow .15s ease;
+    }
+    button:active{transform: translateY(1px);}
+    .btn-primary{
+      background: linear-gradient(180deg, #0b1220, #0a0f1c);
+      color:#fff;
+      box-shadow: 0 10px 18px rgba(15, 23, 42, .18);
+    }
+    .btn-secondary{
+      background:#fff;
+      border-color: var(--line);
+      color: var(--text);
+    }
+
+    /* RESULT */
+    .result-header{
+      padding: 18px;
+      border-bottom:1px solid var(--line);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .name-row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .npc-name{
+      font-size: 20px;
+      font-weight: 850;
+      letter-spacing:.2px;
+    }
+    .icon-btn{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-weight:700;
+      cursor:pointer;
+      font-size: 13px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color: var(--text);
+    }
+    .icon-btn:hover{background:#fafafa}
+    .badges{
+      margin-top: 10px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .badge{
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: var(--soft);
+      border:1px solid var(--line);
+      color: #111827;
+      white-space:nowrap;
+    }
+    .badge.emph{
+      background: var(--badge);
+      border-color: #d9ddff;
+      color: var(--badgeText);
+    }
+    .tabs{
+      display:flex;
+      gap:10px;
+      padding: 12px 18px;
+      border-bottom:1px solid var(--line);
+      background: #fafafa;
+      overflow:auto;
+    }
+    .tab{
+      border:1px solid transparent;
+      background: transparent;
+      padding: 9px 12px;
+      border-radius: 999px;
+      font-weight: 750;
+      font-size: 13px;
+      color: #374151;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .tab.active{
+      background:#fff;
+      border-color: var(--line);
+      color: var(--text);
+      box-shadow: 0 8px 16px rgba(0,0,0,.06);
+    }
+    .tabpanes{
+      padding: 18px;
+    }
+    .pane{display:none}
+    .pane.active{display:block}
+    .h3{
+      font-size: 13px;
+      font-weight: 850;
+      margin: 14px 0 8px;
+      color: #111827;
+      letter-spacing:.2px;
+    }
+    .p{
+      margin:0;
+      color:#1f2937;
+      line-height:1.55;
+      font-size: 14px;
+    }
+    ul{
+      margin: 8px 0 0 18px;
+      padding:0;
+      color:#1f2937;
+      line-height:1.55;
+      font-size: 14px;
+    }
+    .empty{
+      padding: 36px 18px;
+      text-align:center;
+      color: var(--muted);
+    }
+    .pill-note{
+      display:inline-block;
+      margin-top: 10px;
+      font-size: 12px;
+      padding: 6px 10px;
+      border: 1px dashed #cbd5e1;
+      border-radius: 999px;
+      background: #fbfdff;
+      color:#334155;
+    }
+    .divider{
+      height: 14px;
+    }
+    .footer-actions{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:flex-end;
+      padding: 10px 18px 16px;
+      border-top:1px solid var(--line);
+      background:#fff;
+      border-radius: 0 0 var(--radius) var(--radius);
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>OYUNCU DIŞI KARAKTER OLUŞTUR</h1>
+
+    <!-- BİLGİ -->
+    <div class="card">
+      <div class="section two-col">
+        <div class="field">
+          <label for="race">Tür</label>
+          <select id="race"></select>
+
+          <label for="job">Meslek</label>
+          <select id="job"></select>
+
+          <label for="role">Hikayede Rolü</label>
+          <select id="role"></select>
+        </div>
+
+        <div class="field">
+          <label for="place">Bulunduğu Yer</label>
+          <input id="place" type="text" placeholder="örnek: İstanbul'da bir han, ormanda bir kamp, kraliyet sarayı" />
+
+          <label for="power">Güç Seviyesi</label>
+          <select id="power"></select>
+
+          <label for="personalityHint">Kişilik Önerileri (İsteğe Bağlı)</label>
+          <textarea id="personalityHint" placeholder="örnek: inatçı ama anlayışlı, gizemli geçmiş, şakacı"></textarea>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="btn-row">
+          <button class="btn-primary" id="btnGenerate">ODK OLUŞTUR</button>
+          <button class="btn-secondary" id="btnAuto">SEN OLUŞTUR</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- SONUÇ -->
+    <div class="card" id="resultCard">
+      <div class="empty" id="emptyState">
+        <div style="font-size:28px; margin-bottom:10px;">👥</div>
+        Henüz ODK oluşturulmadı. İlk ODK'ni oluşturmak için “ODK OLUŞTUR” düğmesine tıklayabilirsin!
+        <div class="pill-note">İpucu: Filtreleri boş bırakırsan sistem özgürce üretir.</div>
+      </div>
+
+      <div id="resultUI" style="display:none;">
+        <div class="result-header">
+          <div>
+            <div class="name-row">
+              <div class="npc-name" id="npcName">—</div>
+              <button class="icon-btn" id="copyBtn" title="Karakter adını kopyala">
+                📋 Kopyala
+              </button>
+            </div>
+
+            <div class="badges" id="badges"></div>
+          </div>
+
+          <div style="display:flex; gap:10px; align-items:flex-start; flex-wrap:wrap;">
+            <button class="icon-btn" id="saveBtn" title="(Şimdilik) Yerel olarak JSON indirir">💾 Kaydet</button>
+            <button class="icon-btn" id="exportBtn" title="Dışa aktar (TXT)">⬇️ Dışa Aktar</button>
+          </div>
+        </div>
+
+        <div class="tabs" id="tabs">
+          <button class="tab active" data-tab="appearance">Görünüm</button>
+          <button class="tab" data-tab="personality">Kişilik</button>
+          <button class="tab" data-tab="backstory">Geçmiş</button>
+          <button class="tab" data-tab="mechanics">Mekanik</button>
+          <button class="tab" data-tab="rptips">Rol Yapma İpuçları</button>
+        </div>
+
+        <div class="tabpanes">
+          <div class="pane active" id="pane-appearance">
+            <div class="h3">Fiziksel Betimleme</div>
+            <p class="p" id="a-physical">—</p>
+
+            <div class="h3">Ayırt Edici Özellikler</div>
+            <p class="p" id="a-features">—</p>
+
+            <div class="h3">Kıyafet ve Stil</div>
+            <p class="p" id="a-style">—</p>
+          </div>
+
+          <div class="pane" id="pane-personality">
+            <div class="h3">Kişilik Özellikleri</div>
+            <ul id="p-traits"></ul>
+
+            <div class="h3">Davranış Biçimi</div>
+            <p class="p" id="p-manner">—</p>
+
+            <div class="h3">Ses ve Konuşma</div>
+            <p class="p" id="p-voice">—</p>
+          </div>
+
+          <div class="pane" id="pane-backstory">
+            <div class="h3">Arka Plan</div>
+            <p class="p" id="b-background">—</p>
+
+            <div class="h3">Motivasyon</div>
+            <p class="p" id="b-motivation">—</p>
+
+            <div class="h3">Sır</div>
+            <p class="p" id="b-secret">—</p>
+
+            <div class="h3">İlişkiler</div>
+            <p class="p" id="b-relations">—</p>
+          </div>
+
+          <div class="pane" id="pane-mechanics">
+            <div class="h3">Yetenekler</div>
+            <ul id="m-abilities"></ul>
+
+            <div class="h3">Ekipman</div>
+            <ul id="m-gear"></ul>
+          </div>
+
+          <div class="pane" id="pane-rptips">
+            <div class="h3">Rol Yapma İpuçları</div>
+            <ul id="r-tips"></ul>
+          </div>
+        </div>
+
+        <div class="footer-actions">
+          <span style="font-size:12px;color:#6b7280;">Not: Bu sürüm demo üreticidir; istersen bunu gerçek yapay zekâ API’sine bağlarız.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- VERİLER ----------
+    const races = ["Herhangi tür","Asimar","Buçukluk","Cüce","Ejderdoğan","Elf","Gnom","Golyat","İnsan","Ork","Tifling"];
+    const jobs = ["Herhangi","Alim","Asker","Aşçı","Avcı","Büyücü","Casus","Çiftçi","Demirci","Denizci","Dilenci","Eğlendirici","Haberci","Hancı","Hırsız","Kâtip","Kütüphaneci","Muhafız","Otacı","Rahip","Simyacı","Soylu","Suikastçı","Tüccar","Yüzbaşı","Zanaatkâr"];
+    const roles = ["Herhangi","Akıl Hocası","Bilgi Kaynağı","Dost","Düşman","Gizemli Yabancı","Görev Veren","Hain","Kılavuz","Mağdur","Otorite Figürü","Patron","Rakip","Rehber","Romantik İlgi","Tüccar","Yardımcı"];
+    const powerLevels = ["Herhangi","Kasabalı (TD 0)","Amatör (TD 1/8–1/2)","Acemi (TD 1–2)","Gezgin (TD 3–5)","Uzman (TD 6–10)","Usta (TD 11–16)","Efsanevi (TD 17+)"];
+
+    const alignments = [
+      "Disiplinli İyi","Tarafsız İyi","Kaotik İyi",
+      "Disiplinli Tarafsız","Tarafsız","Kaotik Tarafsız",
+      "Disiplinli Kötü","Tarafsız Kötü","Kaotik Kötü"
+    ];
+
+    const nameParts = {
+      Elf: [["Faelar","Eryndor","Lethar","Sylaen","Aerendyl"],["Ayfısıltı","Gümüşyaprak","Sisgezgin","Kökgözcü","Yıldızgölge"]],
+      İnsan:[["Edric","Hugh","Beatrice","Marta","Rowan"],["Demir","Kül","Taş","Karga","Şafak"]],
+      Cüce:[["Brom","Helga","Durn","Kara","Runa"],["Taşçekiç","Demirkemer","Kızılörgü","Kömürsakallı","Çelikdamar"]],
+      Buçukluk:[["Pip","Lina","Tob","Merri","Jory"],["Çayır","Dutdalı","Pabuç","Köpük","Ayçiçeği"]],
+      Gnom:[["Nim","Tikka","Bran","Odo","Vexa"],["Dişli","Kıvılcım","Mercek","Somun","Zınk"]],
+      Ork:[["Gor","Mok","Ugra","Brakk","Ruz"],["Kırıkdiş","Çamurkıran","Kaniz","Yarabaş","Sertyumruk"]],
+      Tifling:[["Nyx","Vera","Sable","Azra","Kor"],["Közbakış","Gölgesöz","Kızıliz","Karanfil","Geceyemin"]],
+      Ejderdoğan:[["Arjhan","Sora","Kavath","Rhogar","Taz"],["Alevpul","Dumannefes","Bronzkanat","Kızılpelerin","Gökyarık"]],
+      Asimar:[["Seren","Elion","Alya","Cyr","Nadia"],["Işıkyemin","Güneşdamga","Şafakyüz","Huzurkanat","Altınses"]],
+      Golyat:[["Thane","Odran","Kaya","Bruni","Skarn"],["Uçurumadım","Doru","Karbuz","Taşyarması","Rüzgaromuz"]],
+      Herhangi: [["Arel","Mira","Kael","Nora","Doran"],["Yel","Taş","Köz","Göl","Şafak"]],
+      "Herhangi tür":[["Arel","Mira","Kael","Nora","Doran"],["Yel","Taş","Köz","Göl","Şafak"]],
+    };
+
+    const traitPool = [
+      "Düşünceli","Tedbirli","Sabırlı","Pragmatik","İnatçı ama anlayışlı",
+      "Şakacı","Ketum","Meraklı","Sadık (güven kazanınca)","Soğukkanlı",
+      "Kuralcı","Özgür ruhlu","Aşırı dürüst","Kurnaz","Çabuk parlayan"
+    ];
+
+    const mannerisms = [
+      "Konuşmadan önce kısa bir süre susup karşısındakini tartar; sonra net ve ölçülü cümleler kurar.",
+      "Farkında olmadan parmaklarıyla masaya ritim tutar; düşünürken bakışları bir noktaya kilitlenir.",
+      "Yakınındaki küçük eşyaları (yüzük, ip, tespih) çevirip durur; sorulara soruyla karşılık verir.",
+      "Çevresini sürekli tarar; kapı, pencere, kaçış yolu gibi şeyleri içgüdüsel biçimde kontrol eder."
+    ];
+
+    const voices = [
+      "Sesi yumuşak ama kararlı; kelimeleri seçerek konuşur ve gereksiz ayrıntıya girmez.",
+      "Düşük tonda, biraz alaycı; cümlelerin sonunu hafifçe uzatır.",
+      "Hızlı ve canlı; heyecanlandığında ses tonu yükselir ama kızgınken bile bağırmaz.",
+      "Sert ve kısa; ‘evet/hayır’ gibi net yanıtları sever, dolambaçtan hoşlanmaz."
+    ];
+
+    const physicalDesc = [
+      "Uzun boylu ve ince yapılı; hareketleri sessiz ve kontrollü, sanki her adımı hesaplar.",
+      "Orta boylu, sağlam duruşlu; yılların işi ellerine iz bırakmış, omuzları biraz düşük.",
+      "Gözleri dikkat çekici; bakışlarında hem yorgunluk hem de tetikte bir keskinlik var.",
+      "Yüzünde hafif bir gülümseme taşır ama gözleri her zaman ‘mesafeli’ kalır."
+    ];
+
+    const features = [
+      "Sol kolunda, ince çizgilerle işlenmiş bir işaret dövmesi taşır; üstünü genelde örtmeyi seçer.",
+      "Boynunda küçük bir muska; dokunduğunda sanki rahatlıyor gibi.",
+      "Kaşının üzerinde eski bir yara izi; sorulursa geçiştirir.",
+      "Kemerinde notlarla dolu küçük bir defter; kimseye göstermiyor."
+    ];
+
+    const styleDesc = [
+      "Sade, işlevsel kıyafetler giyer; dayanıklı kumaşlar ve pratik cepler tercih eder.",
+      "Renkleri toprak tonlarında; üstünde her zaman yolculuğa hazır bir pelerin bulunur.",
+      "Kıyafetleri tertemiz değil ama bakımlı; ‘iş görsün’ anlayışı baskın.",
+      "Daha gösterişli bir kesim; ama süs değil, statü göstergesi olarak taşır."
+    ];
+
+    const backstories = [
+      "Bir zamanlar küçük bir toplulukta saygı gören biriydi; sonra tek bir hata, tüm güveni çatırdattı. Şimdi, geçmişini düzeltmek için yeni bir başlangıç arıyor.",
+      "Usta-çırak ilişkisiyle büyüdü; ustasının kaybolmasıyla mesleğinin sırları yarım kaldı. O sırları tamamlayacak ipuçlarını takip ediyor.",
+      "Bir çatışmanın ortasında tarafsız kalmaya çalıştı; fakat tarafsızlık, her iki tarafı da kızdırdı. Bu yüzden yer değiştirmek zorunda kaldı.",
+      "Bir salgın/lanet söylentisiyle sarsılan bir bölgeden geliyor; olayın ardındaki gerçeği bulmaya yemin etti."
+    ];
+
+    const motivations = [
+      "Kaybettiği birini/şeyi geri kazanmak ya da en azından hesabını kapatmak istiyor.",
+      "Gücünü kanıtlamak değil; kontrolü elinde tutmak istiyor. Kontrol kaybı onu korkutuyor.",
+      "Bir sırra ulaşmak için doğru kişiyi/nesneyi arıyor; bunun için pazarlık yapmaya hazır.",
+      "Birinin hayatını kurtarmak veya bir felaketi önlemek için bilgi ve kaynak topluyor."
+    ];
+
+    const secrets = [
+      "İnsanlara yardım ediyor gibi görünse de, aslında bir borcu kapatmak için çalışıyor.",
+      "Kendini sakladığı bir kimlik var; ortaya çıkarsa herkes ona düşman kesilebilir.",
+      "Bir anlaşma yaptı ve bedeli yaklaşıyor; bu yüzden aceleci davranıyor.",
+      "Korktuğu şey düşmanları değil: kendi zayıflığı. Bu yüzden asla ‘yardıma ihtiyacım var’ demez."
+    ];
+
+    const relations = [
+      "Bir eski dostu ona gizlice bilgi sızdırıyor; karşılığında küçük iyilikler bekliyor.",
+      "Yerel bir otorite figürüyle gerilimli bir bağı var; biri diğerini küçük düşürmek istiyor.",
+      "Bir aile üyesi hâlâ onu bekliyor; ama dönüş, sandığından daha zor.",
+      "Bir rakibi aynı hedefi arıyor; karşılaşmaları kaçınılmaz."
+    ];
+
+    const abilitiesByJob = {
+      "Otacı": [
+        "Bitkiler ve zehirlerle ilgili Sıhhiye kontrollerinde avantaj",
+        "Temel karışımlar: pansuman, basit merhem, yatıştırıcı çay",
+        "Gözlem yeteneği: hasta belirtilerini hızlı okur"
+      ],
+      "Muhafız": [
+        "Gözlem (Tespit) konusunda tecrübeli; kalabalıkta tehlikeyi ayıklar",
+        "Kalkan disiplini: dar alanda mevzi tutar",
+        "Düzen: emir-komuta dilini iyi bilir"
+      ],
+      "Casus": [
+        "Gizlilik ve Aldatma konusunda eğitimli",
+        "Kalabalıkta kaybolma: takip edilmeyi zorlaştırır",
+        "Mesaj şifreleme: basit şifreli notlar"
+      ],
+      "Demirci": [
+        "Zanaatkârlık bilgisi: metal eşyaları hızlı onarır",
+        "Malzeme tanıma: sahteyi kokusundan anlar",
+        "Alet ustalığı: doğru aracı doğru işte kullanır"
+      ],
+      "Rahip": [
+        "Ritüeller ve kutsamalar; topluluk üzerinde sakinleştirici etki",
+        "Kutsal metin bilgisi: dinî sembolleri tanır",
+        "Güven telkini: panikteki kalabalığı yatıştırır"
+      ],
+      "Suikastçı": [
+        "Hızlı hamle: ilk fırsatı kaçırmaz",
+        "Sessiz yaklaşım: yakın mesafede etkili",
+        "Hedef okuma: zayıf noktayı bulur"
+      ]
+    };
+
+    const genericAbilities = [
+      "Keskin Tespit: küçük ayrıntıları kaçırmaz",
+      "Yol bilgisi: basit iz sürme ve yön bulma",
+      "Soğukkanlılık: baskı altında karar verebilir"
+    ];
+
+    const gearPool = [
+      "Küçük bir bıçak",
+      "Yağmurluk/pelerin",
+      "Not defteri ve kömür kalemi",
+      "İp ve küçük kanca",
+      "Bir avuç bozuk para",
+      "Basit tılsım/muska",
+      "Bandaj ve merhem",
+      "Kilit açma aletleri (duruma göre)",
+      "Bitki kesesi (duruma göre)",
+      "Küçük bir fener"
+    ];
+
+    const rpTipsPool = [
+      "Sorulara hemen yanıt verme; önce kısa bir duraksama ekle, sonra net konuş.",
+      "Oyuncuların güçlü yönlerini fark ettiğini belli et; küçük övgüler, küçük testler.",
+      "Tehlike konuşulunca sesi kıs; ‘giz’ hissi ver.",
+      "Bir ‘tetikleyici’ seç: adı geçince gerilsin, bir sembol görünce suskunlaşsın.",
+      "Pazarlıkta acele etme; karşı teklifleri küçük adımlarla yükselt.",
+      "Gerekli yerde kısaca gülümse; ama hemen ardından ciddiyete dön."
+    ];
+
+    // ---------- HELPERS ----------
+    const $ = (id) => document.getElementById(id);
+    const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+    const uniqPick = (arr, n) => {
+      const copy = [...arr];
+      const out = [];
+      while(out.length < n && copy.length){
+        out.push(copy.splice(Math.floor(Math.random()*copy.length),1)[0]);
+      }
+      return out;
+    };
+
+    function fillSelect(el, options){
+      el.innerHTML = "";
+      options.forEach(o=>{
+        const opt = document.createElement("option");
+        opt.value = o;
+        opt.textContent = o;
+        el.appendChild(opt);
+      });
+    }
+
+    function powerToCRText(power){
+      if(!power || power === "Herhangi") return pick(["TD 1–2", "TD 0", "TD 3–5", "TD 1/8–1/2"]);
+      // Extract inside parentheses if any
+      const m = power.match(/\((.*?)\)/);
+      return m ? m[1] : power;
+    }
+
+    function generateName(race){
+      const key = (race && race !== "Herhangi tür") ? race : "Herhangi tür";
+      const parts = nameParts[key] || nameParts["Herhangi tür"];
+      const first = pick(parts[0]);
+      const last = pick(parts[1]);
+      return `${first} ${last}`;
+    }
+
+    function inferAge(race){
+      const map = {
+        "Elf": [80, 450],
+        "Cüce": [40, 250],
+        "İnsan": [18, 70],
+        "Buçukluk": [20, 120],
+        "Gnom": [30, 300],
+        "Ork": [14, 50],
+        "Tifling": [18, 90],
+        "Asimar": [18, 120],
+        "Ejderdoğan": [15, 80],
+        "Golyat": [18, 90]
+      };
+      const [min,max] = map[race] || [18, 90];
+      return `${Math.floor(min + Math.random()*(max-min+1))} yaşında`;
+    }
+
+    function buildNPC({race, job, role, place, power, hint, mode}){
+      // mode: "constraint" (ODK OLUŞTUR) or "auto" (SEN OLUŞTUR)
+      const useRace = (mode === "auto" || !race || race === "Herhangi tür") ? pick(races.slice(1)) : race;
+      const useJob  = (mode === "auto" || !job  || job  === "Herhangi") ? pick(jobs.slice(1)) : job;
+      const useRole = (mode === "auto" || !role || role === "Herhangi") ? pick(roles.slice(1)) : role;
+      const usePlace = (mode === "auto" && (!place || !place.trim()))
+        ? pick(["şehirde bir han", "orman kıyısında bir kamp", "kraliyet sarayının avlusu", "pazar yerinin arka sokakları", "küçük bir tapınak"])
+        : (place && place.trim() ? place.trim() : "—");
+      const usePower = (mode === "auto" || !power || power === "Herhangi") ? pick(powerLevels.slice(1)) : power;
+
+      const npc = {};
+      npc.race = useRace;
+      npc.job = useJob;
+      npc.role = useRole;
+      npc.place = usePlace;
+      npc.power = usePower;
+      npc.alignment = pick(alignments);
+      npc.age = inferAge(useRace);
+      npc.name = generateName(useRace);
+
+      // Appearance
+      npc.physical = pick(physicalDesc);
+      npc.features = pick(features);
+      npc.style = pick(styleDesc);
+
+      // Personality
+      let traits = uniqPick(traitPool, 5);
+      if(hint && hint.trim()){
+        // hint’i traitlere yedir
+        traits = [hint.trim()].concat(traits.slice(0,4));
+      }
+      npc.traits = traits;
+      npc.manner = pick(mannerisms);
+      npc.voice = pick(voices);
+
+      // Backstory
+      npc.background = pick(backstories);
+      npc.motivation = pick(motivations);
+      npc.secret = pick(secrets);
+      npc.relations = pick(relations);
+
+      // Mechanics
+      const jobAbilities = abilitiesByJob[useJob] || [];
+      const abilities = uniqPick([...jobAbilities, ...genericAbilities], 3);
+      if(usePower.includes("Usta") || usePower.includes("Efsanevi")){
+        abilities.push("Sezgisel üstünlük: tehlikeyi ‘önceden’ hisseder (DM yorumu)");
+      }
+      npc.abilities = abilities;
+
+      const gear = uniqPick(gearPool, 6);
+      // role’ye göre ufak tatlar
+      if(useRole === "Görev Veren") gear.unshift("Mühürlü mektup veya emir belgesi");
+      if(useRole === "Gizemli Yabancı") gear.unshift("Yüzünü kısmen örten bir başlık");
+      if(useJob === "Otacı") gear.unshift("Otacı çantası (basit şifa malzemeleri)");
+      npc.gear = gear.slice(0,7);
+
+      // RP Tips
+      npc.rpTips = uniqPick(rpTipsPool, 6);
+
+      // Header subtitle (CR text)
+      npc.crText = powerToCRText(usePower);
+
+      return npc;
+    }
+
+    function renderNPC(npc){
+      // swap states
+      $("emptyState").style.display = "none";
+      $("resultUI").style.display = "block";
+
+      $("npcName").textContent = npc.name;
+
+      // badges
+      const badges = [
+        {t:npc.race, emph:true},
+        {t:npc.job},
+        {t:npc.age},
+        {t:npc.alignment},
+        {t:`${npc.crText} — ${npc.role}` , emph:true}
+      ];
+      const badgeWrap = $("badges");
+      badgeWrap.innerHTML = "";
+      badges.forEach(b=>{
+        const el = document.createElement("span");
+        el.className = "badge" + (b.emph ? " emph" : "");
+        el.textContent = b.t;
+        badgeWrap.appendChild(el);
+      });
+
+      // panes
+      $("a-physical").textContent = npc.physical;
+      $("a-features").textContent = npc.features;
+      $("a-style").textContent = npc.style;
+
+      const traitsUl = $("p-traits");
+      traitsUl.innerHTML = "";
+      npc.traits.forEach(tr=>{
+        const li = document.createElement("li");
+        li.textContent = tr;
+        traitsUl.appendChild(li);
+      });
+      $("p-manner").textContent = npc.manner;
+      $("p-voice").textContent = npc.voice;
+
+      $("b-background").textContent = npc.background;
+      $("b-motivation").textContent = npc.motivation;
+      $("b-secret").textContent = npc.secret;
+      $("b-relations").textContent = npc.relations;
+
+      const abUl = $("m-abilities");
+      abUl.innerHTML = "";
+      npc.abilities.forEach(a=>{
+        const li = document.createElement("li");
+        li.textContent = a;
+        abUl.appendChild(li);
+      });
+
+      const gearUl = $("m-gear");
+      gearUl.innerHTML = "";
+      npc.gear.forEach(g=>{
+        const li = document.createElement("li");
+        li.textContent = g;
+        gearUl.appendChild(li);
+      });
+
+      const tipsUl = $("r-tips");
+      tipsUl.innerHTML = "";
+      npc.rpTips.forEach(t=>{
+        const li = document.createElement("li");
+        li.textContent = t;
+        tipsUl.appendChild(li);
+      });
+
+      // store current npc
+      window.__NPC__ = npc;
+    }
+
+    function setupTabs(){
+      const tabs = Array.from(document.querySelectorAll(".tab"));
+      tabs.forEach(btn=>{
+        btn.addEventListener("click", ()=>{
+          tabs.forEach(t=>t.classList.remove("active"));
+          btn.classList.add("active");
+
+          const target = btn.dataset.tab;
+          document.querySelectorAll(".pane").forEach(p=>p.classList.remove("active"));
+          document.getElementById("pane-"+target).classList.add("active");
+        });
+      });
+    }
+
+    // Export helpers
+    function download(filename, text){
+      const blob = new Blob([text], {type: "text/plain;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function npcToText(n){
+      return [
+        `${n.name}`,
+        `Tür: ${n.race}`,
+        `Meslek: ${n.job}`,
+        `Rol: ${n.role}`,
+        `Bulunduğu Yer: ${n.place}`,
+        `Ahlaki Yönelim: ${n.alignment}`,
+        `Güç Seviyesi: ${n.power}`,
+        ``,
+        `GÖRÜNÜM`,
+        `- Fiziksel: ${n.physical}`,
+        `- Ayırt Edici: ${n.features}`,
+        `- Stil: ${n.style}`,
+        ``,
+        `KİŞİLİK`,
+        `- Özellikler: ${n.traits.join(", ")}`,
+        `- Davranış: ${n.manner}`,
+        `- Ses: ${n.voice}`,
+        ``,
+        `GEÇMİŞ`,
+        `- Arka Plan: ${n.background}`,
+        `- Motivasyon: ${n.motivation}`,
+        `- Sır: ${n.secret}`,
+        `- İlişkiler: ${n.relations}`,
+        ``,
+        `MEKANİK`,
+        `- Yetenekler:\n  • ${n.abilities.join("\n  • ")}`,
+        `- Ekipman:\n  • ${n.gear.join("\n  • ")}`,
+        ``,
+        `ROL YAPMA İPUÇLARI`,
+        `• ${n.rpTips.join("\n• ")}`
+      ].join("\n");
+    }
+
+    // ---------- INIT ----------
+    fillSelect($("race"), races);
+    fillSelect($("job"), jobs);
+    fillSelect($("role"), roles);
+    fillSelect($("power"), powerLevels);
+    setupTabs();
+
+    // ---------- EVENTS ----------
+    $("btnGenerate").addEventListener("click", ()=>{
+      const npc = buildNPC({
+        race: $("race").value,
+        job: $("job").value,
+        role: $("role").value,
+        place: $("place").value,
+        power: $("power").value,
+        hint: $("personalityHint").value,
+        mode: "constraint"
+      });
+      renderNPC(npc);
+      // default show Appearance
+      document.querySelector('.tab[data-tab="appearance"]').click();
+    });
+
+    $("btnAuto").addEventListener("click", ()=>{
+      const npc = buildNPC({
+        race: $("race").value,
+        job: $("job").value,
+        role: $("role").value,
+        place: $("place").value,
+        power: $("power").value,
+        hint: $("personalityHint").value,
+        mode: "auto"
+      });
+      renderNPC(npc);
+      document.querySelector('.tab[data-tab="appearance"]').click();
+    });
+
+    $("copyBtn").addEventListener("click", async ()=>{
+      const name = $("npcName").textContent || "";
+      try{
+        await navigator.clipboard.writeText(name);
+        $("copyBtn").textContent = "✅ Kopyalandı";
+        setTimeout(()=> $("copyBtn").textContent = "📋 Kopyala", 900);
+      }catch{
+        alert("Kopyalama başarısız. Tarayıcı izin vermedi.");
+      }
+    });
+
+    $("saveBtn").addEventListener("click", ()=>{
+      const npc = window.__NPC__;
+      if(!npc) return;
+      download(`${npc.name.replace(/\s+/g,"_")}.json`, JSON.stringify(npc, null, 2));
+    });
+
+    $("exportBtn").addEventListener("click", ()=>{
+      const npc = window.__NPC__;
+      if(!npc) return;
+      download(`${npc.name.replace(/\s+/g,"_")}.txt`, npcToText(npc));
+    });
+  </script>
+</body>
+</html>
