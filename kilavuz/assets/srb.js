@@ -21,6 +21,7 @@ function srbBlocks(blocks){
  let result='',ordered=false;
  for(const b of blocks){
   if(b.kind!=='step'&&ordered){result+='</ol>';ordered=false}
+  if(b.kind==='callout'){result+='<aside class="srb-callout"><p>'+srbInline(b.text)+'</p></aside>';continue}
   if(b.kind==='list'){result+='<ul>'+b.items.map(item=>'<li>'+srbInline(item)+'</li>').join('')+'</ul>';continue}
   if(b.kind==='table'){
    if(b.layout==='spell-progression'){
@@ -38,8 +39,20 @@ function srbBlocks(blocks){
 function srbTOC(sections){
  const render=s=>{const children=sections.filter(x=>x.parent===s.id);const link=`<a class="srb-toc-link" href="#${s.id}">${esc(s.title)}</a>`;
  if(s.navGroups){const groups=s.navGroups.map(g=>{const target=sections.find(x=>x.id===g.id);return target?render(target):`<span class="srb-toc-pending" aria-disabled="true" title="Bu kısım henüz aktarılmadı">${esc(g.title)}</span>`}).join('');return `<details class="srb-class-nav"><summary>${link}</summary><div>${groups}</div></details>`}
- return children.length?`<details><summary>${link}</summary><div>${children.map(render).join('')}</div></details>`:link};
+ return children.length?`<details class="srb-branch"><summary>${link}</summary><div>${children.map(render).join('')}</div></details>`:link};
  const roots=sections.filter(s=>!s.parent&&(s.kind!=='intro'||s.toc)&&s.kind!=='callout');if(roots.some(s=>s.navGroups))roots.sort((a,b)=>a.title.localeCompare(b.title,'tr'));return roots.map(render).join('');
+}
+function srbSelectBranch(menus,link){
+ for(const menu of menus)menu.open=!!link&&menu.contains(link);
+}
+function srbToggleBranch(menus,menu){
+ const opening=!menu.open;
+ for(const other of menus){
+  if(menu.contains(other)||(opening&&other.parentElement===menu.parentElement)){
+   other.open=false;for(const nested of other.querySelectorAll('details'))nested.open=false;
+  }
+ }
+ menu.open=opening;
 }
 function srbSection(s){const level=s.kind==='minorheading'?4:s.kind==='subheading'?3:2;return `<section id="${s.id}" class="srb-section srb-${s.kind}">${s.kind==='intro'?'':`<h${level}>${esc(s.title)}</h${level}>`}${srbBlocks(s.blocks)}</section>`}
 function srbIndex(){
@@ -49,7 +62,7 @@ function srbIndex(){
  const group=(name,url,items)=>`<section class="srb-index-group"><h3>${url?a(name,url):pending(name)}</h3><ul>${items.map(item=>`<li>${item}</li>`).join('')}</ul></section>`;
  const category=(name,key)=>group(name,srbSiteURL('/'+key+'/'),ENTRIES.filter(e=>e.category===key).sort((a,b)=>a.name.localeCompare(b.name,'tr')).map(e=>a(e.name,e.url)));
  const first=SRB.chapters[0];
- main.innerHTML=crumb('Sistem Referans Belgesi')+`<h1 class="page-title">Sistem Referans Belgesi</h1><section class="srb-index-band"><h2>Oyuncular</h2><div class="srb-index-columns"><div>${SRB.chapters.filter(c=>!['karakter-olusturma','karakter-siniflari','karakter-kokenleri'].includes(c.id)).map(c=>group(c.title,srbChapterURL(c),c.sections.filter(s=>s.kind==='heading').map(s=>a(s.title,srbChapterURL(c)+'#'+s.id)))).join('')}${group('Karakter Oluşturma',srbReference('karakter-olusturma'),SRB.chapters.find(c=>c.id==='karakter-olusturma').sections.filter(s=>s.kind==='heading'||['sinif-secimi','kokenini-belirle','dil-secimi','kabiliyet-puanlarini-belirle','ahlaki-yonelim-secimi','ayrintilari-tamamla'].includes(s.id)).map(s=>a(s.title,srbReference(s.id))))}</div><div>${group('Karakter Sınıfları',srbReference('karakter-siniflari'),SRB.chapters.find(c=>c.id==='karakter-siniflari').sections.filter(s=>s.toc).sort((a,b)=>a.title.localeCompare(b.title,'tr')).map(s=>a(s.title,srbReference(s.id))))}</div><div>${group('Karakter Kökenleri',srbReference('karakter-kokenleri'),[a('Köken Bileşenleri',srbReference('koken-bilesenleri')),a('Karakter Geçmişleri',srbReference('karakter-gecmisleri')),a('Karakter Türleri',srbReference('karakter-turleri')),a('Geçmiş Açıklamaları',srbReference('gecmis-aciklamalari'))])}${group('Marifetler',srbSiteURL('/marifet/'),['Köken Marifeti','Genel Marifet','Dövüş Stili Marifeti','Destansı Lütuf Marifeti'].map(t=>a(t,srbSiteURL('/marifet/')+'?kategori='+encodeURIComponent(t))))}</div><div>${group('Ekipman',srbSiteURL('/ekipman/'),[a('Silahlar',srbSiteURL('/ekipman/')+'?kategori='+encodeURIComponent('Silah')),a('Zırhlar',srbSiteURL('/ekipman/')+'?kategori='+encodeURIComponent('Zırh')),a('Aletler',srbSiteURL('/ekipman/')+'?kategori='+encodeURIComponent('Alet')),a('Macera Ekipmanları',srbSiteURL('/ekipman/')+'?kategori='+encodeURIComponent('Macera Ekipmanı')),a('Binekler ve Taşıtlar',srbSiteURL('/ekipman/'))])}${group('Büyüler',srbSiteURL('/buyu/'),[])}${group('Kurallar Sözlüğü',srbSiteURL('/kurallar-sozlugu/'),[])}</div></div></section><section class="srb-index-band"><h2>Zindan Efendileri</h2><div class="srb-index-columns srb-reference-columns">${group('Oyun Kuralları',srbChapterURL(first),[a('Oyunun İşleyişi',srbChapterURL(first)+'#oyunun-isleyisi'),a('Zindan Efendisi Olmak',srbChapterURL(first)+'#zindan-efendisi-olmak')])}${group('Kurallar Sözlüğü',srbSiteURL('/kurallar-sozlugu/'),[a('Durumlar',srbSiteURL('/durumlar/'))])}</div></section>`;
+ main.innerHTML=crumb('Sistem Referans Belgesi')+`<h1 class="page-title">Sistem Referans Belgesi</h1><section class="srb-index-band"><h2>Oyuncular</h2><div class="srb-index-columns"><div>${SRB.chapters.filter(c=>c.audience!=='ze'&&!['karakter-olusturma','karakter-siniflari','karakter-kokenleri','marifetler','ekipman','srb-buyu'].includes(c.id)).map(c=>group(c.title,srbChapterURL(c),c.sections.filter(s=>s.kind==='heading').map(s=>a(s.title,srbChapterURL(c)+'#'+s.id)))).join('')}${group('Karakter Oluşturma',srbReference('karakter-olusturma'),SRB.chapters.find(c=>c.id==='karakter-olusturma').sections.filter(s=>s.kind==='heading'||['sinif-secimi','kokenini-belirle','dil-secimi','kabiliyet-puanlarini-belirle','ahlaki-yonelim-secimi','ayrintilari-tamamla'].includes(s.id)).map(s=>a(s.title,srbReference(s.id))))}</div><div>${group('Karakter Sınıfları',srbReference('karakter-siniflari'),SRB.chapters.find(c=>c.id==='karakter-siniflari').sections.filter(s=>s.toc).sort((a,b)=>a.title.localeCompare(b.title,'tr')).map(s=>a(s.title,srbReference(s.id))))}</div><div>${group('Karakter Kökenleri',srbReference('karakter-kokenleri'),[a('Köken Bileşenleri',srbReference('koken-bilesenleri')),a('Karakter Geçmişleri',srbReference('karakter-gecmisleri')),a('Karakter Türleri',srbReference('karakter-turleri')),a('Geçmiş Açıklamaları',srbReference('gecmis-aciklamalari')),a('Tür Açıklamaları',srbReference('tur-aciklamalari'))])}${group('Marifetler',srbReference('marifetler'),['koken-marifetleri','genel-marifetler','dovus-stili-marifetleri','destansi-lutuf-marifetleri'].map(id=>a(SRB.chapters.find(c=>c.id==='marifetler').sections.find(s=>s.id===id).title,srbReference(id))))}</div><div>${group('Ekipman',srbReference('ekipman'),['sikkeler','srb-silahlar','srb-silah-ozellikleri','srb-ustalik-ozellikleri','srb-zirhlar','srb-aletler','srb-macera-ekipmanlari','srb-binekler-ve-tasitlar','srb-buyuk-tasitlar','srb-hizmetler','buyulu-esyalar','srb-ekipman-uretimi'].map(id=>a(SRB.chapters.find(c=>c.id==='ekipman').sections.find(s=>s.id===id).title,srbReference(id))))}${group('Büyü',srbReference('srb-buyu'),['srb-buyu-kazanmak','srb-buyu-yapmak'].map(id=>a(SRB.chapters.find(c=>c.id==='srb-buyu').sections.find(s=>s.id===id).title,srbReference(id))))}${group('Kurallar Sözlüğü',srbSiteURL('/kurallar-sozlugu/'),[])}</div></div></section><section class="srb-index-band"><h2>Zindan Efendileri</h2><div class="srb-index-columns srb-reference-columns">${SRB.chapters.filter(c=>c.audience==='ze').map(c=>group(c.title,srbChapterURL(c),c.sections.filter(s=>s.kind==='heading').map(s=>a(s.title,srbChapterURL(c)+'#'+s.id)))).join('')}${group('Kurallar Sözlüğü',srbSiteURL('/kurallar-sozlugu/'),[a('Durumlar',srbSiteURL('/durumlar/'))])}</div></section>`;
 }
 function srbPage(id){
  if(!id){srbIndex();return}
@@ -74,11 +87,19 @@ function srbPage(id){
   if(e.target.closest('a'))return;
   e.preventDefault();if(menu.open){menu.open=false;for(const nested of menu.querySelectorAll('details'))nested.open=false}else{selectClass(menu);menu.open=true}
  });
- function mark(id){const activeLink=links.find(link=>link.hash==='#'+id);selectClass(activeLink?.closest('.srb-class-nav')||null);for(const link of links){const active=link.hash==='#'+id;link.classList.toggle('active',active);if(active){link.setAttribute('aria-current','location');for(let parent=link.parentElement;parent&&parent!==main;parent=parent.parentElement)if(parent.tagName==='DETAILS')parent.open=true}else link.removeAttribute('aria-current')}}
+ const branchMenus=classChapter?[]:[...main.querySelectorAll('.srb-branch')];
+ let markedId=null;
+ for(const menu of branchMenus)menu.querySelector('summary').addEventListener('click',e=>{
+  if(e.target.closest('a'))return;
+  e.preventDefault();e.stopPropagation();srbToggleBranch(branchMenus,menu);
+ });
+ function mark(id,force=false){const activeLink=links.find(link=>link.hash==='#'+id);selectClass(activeLink?.closest('.srb-class-nav')||null);
+ if(!classChapter&&(force||id!==markedId))srbSelectBranch(branchMenus,activeLink);
+ markedId=id;for(const link of links){const active=link.hash==='#'+id;link.classList.toggle('active',active);if(active){link.setAttribute('aria-current','location');for(let parent=link.parentElement;parent&&parent!==main;parent=parent.parentElement)if(classChapter&&parent.tagName==='DETAILS')parent.open=true}else link.removeAttribute('aria-current')}}
  let queued=false,navigatingTo=null;function track(){queued=false;if(navigatingTo){mark(navigatingTo);return}if(scrollY<40){mark('srb-chapter-top');return}let current=sections[0];for(const s of sections){if(s.getBoundingClientRect().top<=innerHeight*.5)current=s;else break}mark(current.id)}
  function schedule(){if(!queued){queued=true;requestAnimationFrame(track)}}
  window.addEventListener('scroll',schedule,{passive:true});window.addEventListener('scrollend',()=>{const target=sections.find(s=>s.id===navigatingTo);if(!target||Math.abs(target.getBoundingClientRect().top-innerHeight*.25)<4||innerHeight+scrollY>=document.documentElement.scrollHeight-4){navigatingTo=null;schedule()}});window.addEventListener('wheel',()=>{navigatingTo=null},{passive:true});window.addEventListener('touchstart',()=>{navigatingTo=null},{passive:true});window.addEventListener('resize',schedule);new ResizeObserver(schedule).observe(main.querySelector('.srb-article'));schedule();
- function jump(id){if(id==='srb-chapter-top'){navigatingTo=null;selectClass(null);mark(id);window.scrollTo({top:0,behavior:'instant'});return}const section=sections.find(s=>s.id===id);if(!section)return;navigatingTo=Math.abs(section.getBoundingClientRect().top-innerHeight*.25)>2?id:null;section.scrollIntoView({behavior:'smooth',block:'start'});mark(id)}
+ function jump(id){if(id==='srb-chapter-top'){navigatingTo=null;selectClass(null);mark(id);window.scrollTo({top:0,behavior:'instant'});return}const section=sections.find(s=>s.id===id);if(!section)return;navigatingTo=Math.abs(section.getBoundingClientRect().top-innerHeight*.25)>2?id:null;section.scrollIntoView({behavior:'smooth',block:'start'});mark(id,true)}
  main.querySelector('.srb-sidebar').addEventListener('click',e=>{const a=e.target.closest('a[href^="#"]');if(!a||e.button!==0||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();jump(a.hash.slice(1));history.pushState(null,'',a.hash)});
  window.addEventListener('popstate',()=>jump(decodeURIComponent(location.hash.slice(1))||'srb-chapter-top'));
  requestAnimationFrame(()=>jump(location.hash?decodeURIComponent(location.hash.slice(1)):'srb-chapter-top'));
