@@ -32,3 +32,19 @@
 .srb-spell-progression{min-width:650px;font-size:12px;table-layout:fixed}.srb-spell-progression th,.srb-spell-progression td{padding:8px 4px;text-align:center}.srb-spell-progression tbody th{min-width:0}.srb-spell-progression thead th[rowspan]{vertical-align:middle}.srb-spell-progression thead th:nth-child(1){width:6%}.srb-spell-progression thead th[rowspan]:nth-child(2){width:9%}.srb-spell-progression thead th[rowspan]:nth-child(3){width:25%}.srb-spell-progression thead th[rowspan]:nth-child(4),.srb-spell-progression thead th[rowspan]:nth-child(5){width:10%}.srb-spell-progression td:nth-child(3){text-align:left}
 
 .srb-table caption{text-align:left;font-weight:bold;padding:8px 0}.srb-druid-progression{min-width:760px}.srb-druid-progression thead th[rowspan]:nth-child(3){width:22%}.srb-druid-progression thead th[rowspan]:nth-child(4){width:7%}.srb-druid-progression thead th[rowspan]:nth-child(5),.srb-druid-progression thead th[rowspan]:nth-child(6){width:9%}
+
+.srb-table tr.srb-table-spacer td{height:1rem;padding:0;border:0;background:var(--paper,#fff)}
+
+body>footer{max-width:none;margin:24px 0 0;padding:24px 20px;justify-content:center;text-align:center;width:100%;box-sizing:border-box}body>footer .site-footer-line{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px;margin:0;font-size:13px}.information-page{max-width:900px;margin:0 auto}.information-page p,.information-page li{line-height:1.8}.information-page p{margin:20px 0}.information-page h2{font-size:28px;margin:32px 0 20px}.information-page hr{border:0;border-top:1px solid var(--line);margin:40px 0 28px}.information-page a{color:var(--red);text-decoration:underline;text-underline-offset:3px}.information-page .policy-updated{font-size:12px;color:var(--muted)}
+
+.about-page .community-cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin:32px 0 44px}.community-card{position:relative;aspect-ratio:1;overflow:hidden;border:1px solid var(--line);border-radius:3px;background:#fff}.community-card img{display:block;width:100%;height:100%;object-fit:contain}.community-card span{position:absolute;top:70%;left:0;right:0;transform:translateY(-50%);text-align:center;font-size:16px;font-weight:700;letter-spacing:1px;color:#b90000}.community-card:focus-visible{outline:3px solid var(--red);outline-offset:4px}@media(max-width:640px){.about-page .community-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.community-card span{font-size:14px}}
+
+/* Subtle card shade on pointer hover and keyboard focus. */
+.community-card::after{content:"";position:absolute;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity 180ms ease}
+@media(hover:hover){.community-card:hover::after{opacity:.08}}
+.community-card:focus-visible::after{opacity:.08}
+@media(prefers-reduced-motion:reduce){.community-card::after{transition:none}}
+
+.community-card{display:block;text-decoration:none}
+
+header nav .nav-brand{display:flex;align-items:center;justify-content:center;flex:0 0 56px;margin-right:2px}header nav .nav-logo{display:block;width:56px;height:56px;object-fit:contain;flex-shrink:0}

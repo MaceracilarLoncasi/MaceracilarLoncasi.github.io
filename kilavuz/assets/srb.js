@@ -20,15 +20,16 @@ function srbInline(text){
 function srbBlocks(blocks){
  let result='',ordered=false;
  for(const b of blocks){
+  const cellHTML=cell=>srbUnlink(srbInline(cell),b.unlink);
   if(b.kind!=='step'&&ordered){result+='</ol>';ordered=false}
   if(b.kind==='callout'){result+='<aside class="srb-callout"><p>'+srbInline(b.text)+'</p></aside>';continue}
   if(b.kind==='list'){result+='<ul>'+b.items.map(item=>'<li>'+srbInline(item)+'</li>').join('')+'</ul>';continue}
   if(b.kind==='table'){
    if(b.layout==='spell-progression'){
     const slotCount=b.slotCount===5?5:9;const fixedCount=b.headers.length-slotCount;const fixed=b.headers.slice(0,fixedCount).map(h=>`<th scope="col" rowspan="2">${esc(h)}</th>`).join('');
-    result+=`<div class="srb-table-wrap" tabindex="0" role="region" aria-label="Sınıf özellikleri ve büyü yuvaları"><table class="srb-table srb-spell-progression${fixedCount===6?' srb-druid-progression':''}"><thead><tr>${fixed}<th colspan="${slotCount}" scope="colgroup">Büyü Seviyesine Göre Büyü Yuvaları</th></tr><tr>${b.headers.slice(fixedCount).map(h=>`<th scope="col">${esc(h)}</th>`).join('')}</tr></thead><tbody>${b.rows.map(row=>`<tr>${row.map((cell,i)=>i===0?`<th scope="row">${srbInline(cell)}</th>`:`<td>${srbInline(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;continue;
+    result+=`<div class="srb-table-wrap" tabindex="0" role="region" aria-label="Sınıf özellikleri ve büyü yuvaları"><table class="srb-table srb-spell-progression${fixedCount===6?' srb-druid-progression':''}"><thead><tr>${fixed}<th colspan="${slotCount}" scope="colgroup">Büyü Seviyesine Göre Büyü Yuvaları</th></tr><tr>${b.headers.slice(fixedCount).map(h=>`<th scope="col">${esc(h)}</th>`).join('')}</tr></thead><tbody>${b.rows.map((row,rowIndex)=>(b.spacerBeforeRows?.includes(rowIndex)?`<tr class="srb-table-spacer" aria-hidden="true"><td colspan="${b.headers.length}"></td></tr>`:'')+`<tr>${row.map((cell,i)=>i===0?`<th scope="row">${cellHTML(cell)}</th>`:`<td>${cellHTML(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;continue;
    }
-   result+=`<div class="srb-table-wrap" tabindex="0" role="region" aria-label="${esc(b.headers.join(', '))}"><table class="srb-table">${b.caption?`<caption>${esc(b.caption)}</caption>`:''}<thead><tr>${b.headers.map(h=>`<th scope="col">${esc(h)}</th>`).join('')}</tr></thead><tbody>${b.rows.map(row=>`<tr>${row.map((cell,i)=>i===0?`<th scope="row">${srbInline(cell)}</th>`:`<td>${srbInline(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;continue;
+   result+=`<div class="srb-table-wrap" tabindex="0" role="region" aria-label="${esc(b.headers.join(', '))}"><table class="srb-table">${b.caption?`<caption>${esc(b.caption)}</caption>`:''}<thead><tr>${b.headers.map(h=>`<th scope="col">${esc(h)}</th>`).join('')}</tr></thead><tbody>${b.rows.map((row,rowIndex)=>(b.spacerBeforeRows?.includes(rowIndex)?`<tr class="srb-table-spacer" aria-hidden="true"><td colspan="${b.headers.length}"></td></tr>`:'')+`<tr>${row.map((cell,i)=>i===0?`<th scope="row">${cellHTML(cell)}</th>`:`<td>${cellHTML(cell)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;continue;
   }
   if(b.kind==='step'&&!ordered){result+=Number.isInteger(b.start)&&b.start>1?`<ol start="${b.start}">`:'<ol>';ordered=true}
   const content=(b.label?`<strong>${esc(b.label)}</strong> `:'')+srbInline(b.text);
@@ -54,7 +55,27 @@ function srbToggleBranch(menus,menu){
  }
  menu.open=opening;
 }
-function srbSection(s){const level=s.kind==='minorheading'?4:s.kind==='subheading'?3:2;return `<section id="${s.id}" class="srb-section srb-${s.kind}">${s.kind==='intro'?'':`<h${level}>${esc(s.title)}</h${level}>`}${srbBlocks(s.blocks)}</section>`}
+function srbUnlink(html,rule,keepLinks=[],terms=[]){
+ if(!rule&&!terms.length)return html;
+ return html.replace(/<a\b[^>]*>([\s\S]*?)<\/a>/g,(anchor,label)=>{
+  if(keepLinks.some(id=>anchor.includes('href="'+esc(srbReference(id))+'"')))return anchor;
+  const text=label.replace(/<[^>]*>/g,'').toLocaleLowerCase('tr');
+  const slug=anchor.match(/data-term="([^"]+)"/)?.[1];
+  return rule===true||(Array.isArray(rule)&&rule.some(term=>text.startsWith(term)))||terms.includes(slug)?label:anchor;
+ });
+}
+// Keep the first reference to each destination within one heading's content.
+// Inflected glossary labels share a destination, so they are counted together.
+function srbUniqueLinks(html,repeat=false){
+ if(repeat)return html;
+ const seen=new Set();
+ return html.replace(/<a\b([^>]*)>([\s\S]*?)<\/a>/g,(anchor,attrs,label)=>{
+  const href=attrs.match(/\bhref="([^"]*)"/);if(!href)return anchor;
+  if(seen.has(href[1]))return label;
+  seen.add(href[1]);return anchor;
+ });
+}
+function srbSection(s){const inherited=SRB.chapters.find(c=>c.sections.some(x=>x.id===s.id))?.unlinkTerms||[];const level=s.kind==='minorheading'?4:s.kind==='subheading'?3:2;return `<section id="${s.id}" class="srb-section srb-${s.kind}">${s.kind==='intro'?'':`<h${level}>${esc(s.title)}</h${level}>`}${srbUniqueLinks(srbUnlink(srbBlocks(s.blocks),s.unlink,s.keepLinks,[...inherited,...(s.unlinkTerms||[])]),s.repeatLinks)}</section>`}
 function srbIndex(){
  document.title='Sistem Referans Belgesi · D&D Türkçe';
  const a=(name,url)=>`<a href="${esc(url)}">${esc(name)}</a>`;
@@ -100,7 +121,7 @@ function srbPage(id){
  function schedule(){if(!queued){queued=true;requestAnimationFrame(track)}}
  window.addEventListener('scroll',schedule,{passive:true});window.addEventListener('scrollend',()=>{const target=sections.find(s=>s.id===navigatingTo);if(!target||Math.abs(target.getBoundingClientRect().top-innerHeight*.25)<4||innerHeight+scrollY>=document.documentElement.scrollHeight-4){navigatingTo=null;schedule()}});window.addEventListener('wheel',()=>{navigatingTo=null},{passive:true});window.addEventListener('touchstart',()=>{navigatingTo=null},{passive:true});window.addEventListener('resize',schedule);new ResizeObserver(schedule).observe(main.querySelector('.srb-article'));schedule();
  function jump(id){if(id==='srb-chapter-top'){navigatingTo=null;selectClass(null);mark(id);window.scrollTo({top:0,behavior:'instant'});return}const section=sections.find(s=>s.id===id);if(!section)return;navigatingTo=Math.abs(section.getBoundingClientRect().top-innerHeight*.25)>2?id:null;section.scrollIntoView({behavior:'smooth',block:'start'});mark(id,true)}
- main.querySelector('.srb-sidebar').addEventListener('click',e=>{const a=e.target.closest('a[href^="#"]');if(!a||e.button!==0||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();jump(a.hash.slice(1));history.pushState(null,'',a.hash)});
+ main.addEventListener('click',e=>{const a=e.target.closest('a[href]');if(!a||e.button!==0||e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;const url=new URL(a.href,location.href);if(url.origin!==location.origin||url.pathname!==location.pathname||!url.hash)return;const id=decodeURIComponent(url.hash.slice(1));if(id!=='srb-chapter-top'&&!sections.some(s=>s.id===id))return;e.preventDefault();jump(id);history.pushState(null,'',url.hash)});
  window.addEventListener('popstate',()=>jump(decodeURIComponent(location.hash.slice(1))||'srb-chapter-top'));
  requestAnimationFrame(()=>jump(location.hash?decodeURIComponent(location.hash.slice(1)):'srb-chapter-top'));
 }
