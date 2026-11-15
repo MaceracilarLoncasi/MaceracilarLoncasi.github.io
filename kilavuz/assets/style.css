@@ -48,3 +48,5 @@ body>footer{max-width:none;margin:24px 0 0;padding:24px 20px;justify-content:cen
 .community-card{display:block;text-decoration:none}
 
 header nav .nav-brand{display:flex;align-items:center;justify-content:center;flex:0 0 56px;margin-right:2px}header nav .nav-logo{display:block;width:56px;height:56px;object-fit:contain;flex-shrink:0}
+
+.srb-formula{text-align:center;}
