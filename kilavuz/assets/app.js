@@ -22,6 +22,7 @@ function contentLinkPolicy(html,terms=[]){
  return html.replace(/<a\b([^>]*)>([\s\S]*?)<\/a>/g,(anchor,attrs,label,index)=>{
   if(linkProtected(html,index))return anchor;
   const text=label.replace(/<[^>]*>/g,'').toLocaleLowerCase('tr');
+  if(/^yaratık[\p{L}’']*$/u.test(text))return label;
   const entry=ENTRIES.find(e=>e.slug===attrs.match(/data-term="([^"]+)"/)?.[1]);
   if(entry?.category==='buyu'||entry?.category==='sinif')return anchor;
   const generic=/^(?:hedef[\p{L}’']*|düşman(?!c)[\p{L}’']*|hasar[\p{L}’']*|büyü[\p{L}’']*|varl[ıi]k[\p{L}’']*|varlığ[\p{L}’']*|bonus aksiyon[\p{L}’']*|(?:geçici )?sağlık puan[\p{L}’']*(?: zar[\p{L}’']*)?)$/u.test(text);
@@ -170,7 +171,7 @@ function classPage(e){
 const path=location.pathname.replace(/^\/kilavuz(?:\/|$)/,'/').split('/').filter(Boolean),main=$('#main');
 const crumb=label=>`<div class="crumb"><a href="/kilavuz/">Ana Sayfa</a> / ${label}</div>`;
 if(SITE_PAGES[path[0]]||path[0]==='maceracilar-loncasi'){const page=SITE_PAGES[path[0]]||SITE_PAGES.hakkimizda;document.title=page.title+' · D&D Türkçe';main.innerHTML=crumb(page.title)+page.html}
-else if(!path.length){main.innerHTML=`<div class="intro"><div><div class="eyebrow">Maceracılar Loncası</div><h1>D&D Türkçe Kılavuz</h1></div><div class="seal" aria-hidden="true"><span>20</span></div></div><section><div class="section-title"><h2>Oyuncular</h2><span>KARAKTERİNİ KEŞFET</span></div><div class="cards">${cards(CATEGORIES.slice(0,8))}</div></section><section><div class="section-title"><h2>Zindan Efendileri</h2><span>MACERAYI ŞEKİLLENDİR</span></div><div class="cards dm">${cards(CATEGORIES.slice(8))}</div></section><aside class="notice"><div><h3>Sistem Referans Belgesi</h3><p>D&D oynamak veya yönetmek için tanımları oku, kavramları keşfet.</p></div><a href="/kilavuz/sistem-referans-belgesi/">SRB'yi aç</a></aside>`}
+else if(!path.length){main.innerHTML=`<div class="intro"><div><div class="eyebrow">Maceracılar Loncası</div><h1>D&D Türkçe Kılavuz</h1></div></div><section><div class="section-title"><h2>Oyuncular</h2></div><div class="cards">${cards(CATEGORIES.slice(0,8))}</div></section><section><div class="section-title"><h2>Zindan Efendileri</h2></div><div class="cards dm">${cards(CATEGORIES.slice(8))}</div></section><aside class="notice"><div><h3>Sistem Referans Belgesi</h3><p>D&D oynamak veya yönetmek için tanımları oku, kavramları keşfet.</p></div><a href="/kilavuz/sistem-referans-belgesi/">SRB'yi aç</a></aside>`}
 else if(path[0]==='sistem-referans-belgesi'){srbPage(path[1])}
 else if(path[0]==='sinif'){const e=ENTRIES.find(e=>e.category==='sinif'&&e.url===location.pathname)||ENTRIES.find(e=>e.category==='sinif');classPage(e)}
 else if(path[1]&&ENTRIES.some(e=>e.url===location.pathname)){const e=ENTRIES.find(e=>e.url===location.pathname);document.title=e.name+' · D&D Türkçe';main.innerHTML=crumb(e.name)+`<article class="detail single">${detail(e)}</article>`}
