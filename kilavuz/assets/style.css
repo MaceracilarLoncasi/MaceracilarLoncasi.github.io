@@ -58,3 +58,5 @@ header nav .nav-brand{display:flex;align-items:center;justify-content:center;fle
 .copyright-mark{position:relative;display:inline-block}.copyright-mark::after{content:"";position:absolute;left:-1px;right:-1px;top:50%;height:2px;background:#c62828;transform:rotate(-35deg)}
 
 .about-logo{display:block;width:180px;max-width:100%;height:auto;object-fit:contain;margin:32px auto 0}
+
+.card-pending{cursor:default}
